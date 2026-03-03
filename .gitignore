@@ -1,0 +1,29 @@
+# Laravel
+/vendor
+/node_modules
+.env
+.env.backup
+.env.production
+*.log
+/storage/app/public/pod_files/*
+!/storage/app/public/pod_files/.gitkeep
+/storage/framework/cache/*
+!/storage/framework/cache/.gitkeep
+/storage/framework/sessions/*
+!/storage/framework/sessions/.gitkeep
+/storage/framework/views/*
+!/storage/framework/views/.gitkeep
+/storage/logs/*
+!/storage/logs/.gitkeep
+/public/storage
+/public/hot
+/bootstrap/cache/*.php
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea
+.vscode
+*.sublime-project
