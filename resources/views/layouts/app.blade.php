@@ -67,6 +67,35 @@
         }
         .topbar-brand span { color: var(--teal); }
         .topbar-right { display: flex; align-items: center; gap: 1.5rem; }
+
+        /* ── NAV MENU ── */
+        .topbar-nav { display: flex; align-items: center; gap: .25rem; }
+        .nav-link {
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            padding: .42rem 1rem;
+            border-radius: 8px;
+            font-size: .83rem;
+            font-weight: 600;
+            color: var(--text-dim);
+            text-decoration: none;
+            transition: all .18s;
+            white-space: nowrap;
+            border: 1px solid transparent;
+        }
+        .nav-link:hover {
+            color: var(--teal);
+            background: rgba(0,201,177,.08);
+            border-color: rgba(0,201,177,.2);
+        }
+        .nav-link.active {
+            color: var(--teal);
+            background: rgba(0,201,177,.12);
+            border-color: rgba(0,201,177,.3);
+        }
+        .nav-divider { width: 1px; height: 20px; background: var(--border); margin: 0 .25rem; }
+
         .clock {
             font-size: .85rem;
             color: var(--text-dim);
@@ -372,6 +401,24 @@
             <div class="icon"><i class="fas fa-ship"></i></div>
             <div>POD <span>Chasing</span></div>
         </div>
+
+        <nav class="topbar-nav">
+            <a href="{{ route('prospects.index') }}"
+               class="nav-link {{ request()->routeIs('prospects.*') ? 'active' : '' }}">
+                <i class="fas fa-binoculars"></i> Prospects
+            </a>
+            <div class="nav-divider"></div>
+            <a href="{{ route('vessels.index') }}"
+               class="nav-link {{ request()->routeIs('vessels.index') ? 'active' : '' }}">
+                <i class="fas fa-truck"></i> Delivery Monitoring
+            </a>
+            <!-- <div class="nav-divider"></div>
+            <a href="{{ route('vessels.index') }}"
+               class="nav-link {{ false ? 'active' : '' }}">
+                <i class="fas fa-file-signature"></i> POD Chasing
+            </a> -->
+        </nav>
+
         <div class="topbar-right">
             <div class="clock" id="clock"><i class="far fa-clock"></i> --:--:--</div>
         </div>

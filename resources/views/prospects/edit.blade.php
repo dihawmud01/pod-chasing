@@ -1,0 +1,142 @@
+@extends('layouts.app')
+
+@section('title', 'Edit Prospect')
+
+@section('content')
+<div class="toolbar">
+    <h2>
+        <i class="fas fa-edit" style="color:var(--teal)"></i> Edit Prospect
+        <small>{{ $prospect->vessel_name }}</small>
+    </h2>
+    <a href="{{ route('prospects.index') }}" class="btn btn-outline">
+        <i class="fas fa-arrow-left"></i> Back
+    </a>
+</div>
+
+<div style="max-width:800px;margin:0 auto;">
+    <div class="table-wrap" style="padding:2rem;border-radius:16px;">
+        @if($errors->any())
+            <div class="alert alert-error" style="margin-bottom:1.5rem;">
+                <i class="fas fa-exclamation-triangle"></i>
+                <div>
+                    @foreach($errors->all() as $err)
+                        <div>{{ $err }}</div>
+                    @endforeach
+                </div>
+            </div>
+        @endif
+
+        <form method="POST" action="{{ route('prospects.update', $prospect) }}">
+            @csrf
+            @method('PUT')
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Vessel Name <span style="color:var(--red)">*</span></label>
+                    <input type="text" name="vessel_name" class="form-control"
+                           value="{{ old('vessel_name', $prospect->vessel_name) }}" required>
+                </div>
+                <div class="form-group">
+                    <label>Port</label>
+                    <input type="text" name="port" class="form-control"
+                           value="{{ old('port', $prospect->port) }}"
+                           placeholder="e.g. Singapore, Rotterdam">
+                </div>
+            </div>
+
+            <div class="form-row" style="grid-template-columns:1fr 1fr 1fr;">
+                <div class="form-group">
+                    <label>ETA</label>
+                    <input type="date" name="eta" class="form-control"
+                           value="{{ old('eta', $prospect->eta?->format('Y-m-d')) }}">
+                </div>
+                <div class="form-group">
+                    <label>ETB</label>
+                    <input type="date" name="etb" class="form-control"
+                           value="{{ old('etb', $prospect->etb?->format('Y-m-d')) }}">
+                </div>
+                <div class="form-group">
+                    <label>ETD</label>
+                    <input type="date" name="etd" class="form-control"
+                           value="{{ old('etd', $prospect->etd?->format('Y-m-d')) }}">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Destination Country</label>
+                    <input type="text" name="destination_country" class="form-control"
+                           value="{{ old('destination_country', $prospect->destination_country) }}"
+                           placeholder="e.g. Indonesia, Malaysia">
+                </div>
+                <div class="form-group">
+                    <label>Forwarder</label>
+                    <input type="text" name="forwarder" class="form-control"
+                           value="{{ old('forwarder', $prospect->forwarder) }}"
+                           placeholder="Forwarder company name">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Delivery Date</label>
+                    <input type="date" name="delivery_date" class="form-control"
+                           value="{{ old('delivery_date', $prospect->delivery_date?->format('Y-m-d')) }}">
+                    <small style="color:var(--text-dim);font-size:.75rem;margin-top:.3rem;display:block;">
+                        <i class="fas fa-info-circle"></i>
+                        Once filled, the "Create Delivery" button will be enabled.
+                    </small>
+                </div>
+                <div class="form-group">
+                    <label>Status <span style="color:var(--red)">*</span></label>
+                    <select name="status" class="form-control">
+                        @foreach($statuses as $key => $label)
+                            <option value="{{ $key }}" {{ old('status', $prospect->status) === $key ? 'selected' : '' }}>
+                                {{ $label }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Notes</label>
+                <textarea name="notes" class="form-control" rows="8"
+                          placeholder="Operational notes...&#10;e.g.&#10;- Vessel delayed 2 days&#10;- Vessel departed Singapore&#10;- Waiting agent confirmation&#10;- Follow up forwarder">{{ old('notes', $prospect->notes) }}</textarea>
+                <small style="color:var(--text-dim);font-size:.75rem;margin-top:.3rem;display:block;">
+                    <i class="fas fa-sticky-note"></i>
+                    Operational notes: vessel delays, departures, agent updates, follow-ups, ETA changes, etc.
+                </small>
+            </div>
+
+            <div class="modal-footer">
+                <a href="{{ route('prospects.index') }}" class="btn btn-outline">Cancel</a>
+
+                @if($prospect->delivery_date && $prospect->status !== 'cancelled' && $prospect->status !== 'completed')
+                <div style="margin-right:auto;">
+                    <form method="POST" action="{{ route('prospects.createDelivery', $prospect) }}"
+                          onsubmit="return confirm('Create delivery from this prospect?')">
+                        @csrf
+                        <button type="submit" class="btn btn-gold">
+                            <i class="fas fa-truck"></i> Create Delivery
+                        </button>
+                    </form>
+                </div>
+                @endif
+
+                <button type="submit" class="btn btn-teal">
+                    <i class="fas fa-save"></i> Update Prospect
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div style="margin-top:1rem;background:var(--navy-card);border:1px solid var(--border);border-radius:12px;padding:1rem 1.25rem;">
+        <div style="font-size:.75rem;color:var(--text-dim);display:flex;gap:2rem;flex-wrap:wrap;">
+            <span><i class="fas fa-calendar-plus"></i> Created: {{ $prospect->created_at->format('d M Y H:i') }}</span>
+            <span><i class="fas fa-calendar-edit"></i> Updated: {{ $prospect->updated_at->format('d M Y H:i') }}</span>
+            <span><i class="fas fa-hashtag"></i> ID: {{ $prospect->id }}</span>
+        </div>
+    </div>
+</div>
+@endsection

@@ -46,7 +46,7 @@ class VesselController extends Controller
         ]);
 
         return redirect()->route('vessels.index', ['date' => $request->report_date ?? now()->toDateString()])
-            ->with('success', 'Vessel berhasil ditambahkan!');
+            ->with('success', 'Vessel added successfully!');
     }
 
     public function update(Request $request, Vessel $vessel)
@@ -65,7 +65,7 @@ class VesselController extends Controller
         ]);
 
         return redirect()->route('vessels.index', ['date' => $vessel->report_date->toDateString()])
-            ->with('success', 'Data vessel berhasil diupdate!');
+            ->with('success', 'Vessel updated successfully!');
     }
 
     public function destroy(Vessel $vessel)
@@ -76,7 +76,7 @@ class VesselController extends Controller
         }
         $vessel->delete();
         return redirect()->route('vessels.index', ['date' => $date])
-            ->with('success', 'Vessel berhasil dihapus!');
+            ->with('success', 'Vessel deleted successfully!');
     }
 
     public function quickUpdate(Request $request, Vessel $vessel)
@@ -117,7 +117,7 @@ class VesselController extends Controller
         ]);
 
         return redirect()->route('vessels.index', ['date' => $vessel->report_date->toDateString()])
-            ->with('success', 'POD file berhasil diupload!');
+            ->with('success', 'POD file uploaded successfully!');
     }
 
     public function print(Request $request)
