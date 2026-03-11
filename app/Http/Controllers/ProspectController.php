@@ -21,22 +21,36 @@ class ProspectController extends Controller
         $prospects = $query->get();
         $statuses  = Prospect::$statuses;
 
-        return view('prospects.index', compact('prospects', 'statuses', 'date'));
+        // ── Alert data (across ALL dates, not just current view) ──
+        $overdueProspects = Prospect::whereNotNull('delivery_date')
+            ->whereDate('delivery_date', '<', now()->toDateString())
+            ->whereNotIn('status', ['completed', 'cancelled'])
+            ->orderBy('delivery_date')
+            ->get();
+
+        $confirmedNoDates = Prospect::where('status', 'confirmed')
+            ->whereNull('delivery_date')
+            ->orderBy('prospect_date')
+            ->get();
+
+        return view('prospects.index', compact(
+            'prospects', 'statuses', 'date', 'overdueProspects', 'confirmedNoDates'
+        ));
     }
 
     public function create(Request $request)
     {
-        $statuses      = Prospect::$statuses;
-        $prospectDate  = $request->get('date', now()->toDateString());
+        $statuses     = Prospect::$statuses;
+        $prospectDate = $request->get('date', now()->toDateString());
         return view('prospects.create', compact('statuses', 'prospectDate'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'vessel_name'  => 'required|string|max:255',
-            'status'       => 'required|in:' . implode(',', array_keys(Prospect::$statuses)),
-            'prospect_date'=> 'required|date',
+            'vessel_name'   => 'required|string|max:255',
+            'status'        => 'required|in:' . implode(',', array_keys(Prospect::$statuses)),
+            'prospect_date' => 'required|date',
         ]);
 
         Prospect::create([
@@ -50,6 +64,7 @@ class ProspectController extends Controller
             'forwarder'           => $request->forwarder,
             'delivery_date'       => $request->delivery_date ?: null,
             'status'              => $request->status,
+            'customs_note'        => $request->status === 'customs' ? $request->customs_note : null,
             'notes'               => $request->notes,
         ]);
 
@@ -66,9 +81,9 @@ class ProspectController extends Controller
     public function update(Request $request, Prospect $prospect)
     {
         $request->validate([
-            'vessel_name'  => 'required|string|max:255',
-            'status'       => 'required|in:' . implode(',', array_keys(Prospect::$statuses)),
-            'prospect_date'=> 'required|date',
+            'vessel_name'   => 'required|string|max:255',
+            'status'        => 'required|in:' . implode(',', array_keys(Prospect::$statuses)),
+            'prospect_date' => 'required|date',
         ]);
 
         $prospect->update([
@@ -82,6 +97,7 @@ class ProspectController extends Controller
             'forwarder'           => $request->forwarder,
             'delivery_date'       => $request->delivery_date ?: null,
             'status'              => $request->status,
+            'customs_note'        => $request->status === 'customs' ? $request->customs_note : null,
             'notes'               => $request->notes,
         ]);
 
@@ -98,8 +114,28 @@ class ProspectController extends Controller
     }
 
     /**
+     * Quick status update via AJAX (inline table toggle).
+     */
+    public function quickStatus(Request $request, Prospect $prospect)
+    {
+        $allowed = ['status', 'customs_note'];
+        $data    = $request->only($allowed);
+
+        // Clear customs_note when switching away from customs
+        if (isset($data['status']) && $data['status'] !== 'customs') {
+            $data['customs_note'] = null;
+        }
+
+        $prospect->update($data);
+
+        return response()->json([
+            'success'  => true,
+            'prospect' => $prospect->fresh(),
+        ]);
+    }
+
+    /**
      * Create a Delivery (Vessel) record from this Prospect.
-     * Does NOT alter the existing vessels table structure.
      */
     public function createDelivery(Prospect $prospect)
     {
@@ -146,8 +182,6 @@ class ProspectController extends Controller
         $pdf = Pdf::loadView('prospects.pdf', compact('prospects', 'statuses', 'filterLabel', 'date'))
             ->setPaper('a4', 'landscape');
 
-        $filename = 'prospects-' . $date . '.pdf';
-
-        return $pdf->download($filename);
+        return $pdf->download('prospects-' . $date . '.pdf');
     }
 }

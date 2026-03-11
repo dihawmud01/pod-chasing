@@ -17,5 +17,7 @@ Route::get('/print', [VesselController::class, 'print'])->name('vessels.print');
 Route::resource('prospects', ProspectController::class);
 Route::post('/prospects/{prospect}/create-delivery', [ProspectController::class, 'createDelivery'])
     ->name('prospects.createDelivery');
+Route::patch('/prospects/{prospect}/quick-status', [ProspectController::class, 'quickStatus'])
+    ->name('prospects.quickStatus');
 Route::get('/prospects-export-pdf', [ProspectController::class, 'exportPdf'])
     ->name('prospects.exportPdf');

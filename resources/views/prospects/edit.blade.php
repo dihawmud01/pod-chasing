@@ -13,7 +13,7 @@
     </a>
 </div>
 
-<div style="max-width:800px;margin:0 auto;">
+<div style="max-width:820px;margin:0 auto;">
     <div class="table-wrap" style="padding:2rem;border-radius:16px;">
         @if($errors->any())
             <div class="alert alert-error" style="margin-bottom:1.5rem;">
@@ -23,20 +23,17 @@
         @endif
 
         <form method="POST" action="{{ route('prospects.update', $prospect) }}">
-            @csrf
-            @method('PUT')
+            @csrf @method('PUT')
 
-            {{-- Prospect Date — change to reschedule --}}
+            {{-- Prospect Date --}}
             <div class="form-group">
                 <label>
                     Prospect Date <span style="color:var(--red)">*</span>
-                    <span style="color:var(--text-dim);font-size:.75rem;font-weight:400;margin-left:.5rem;">
-                        — change this to reschedule the prospect to a different date.
-                    </span>
+                    <small style="color:var(--text-dim);font-weight:400;margin-left:.4rem;">— change to reschedule to another date</small>
                 </label>
                 <input type="date" name="prospect_date" class="form-control"
-                       value="{{ old('prospect_date', $prospect->prospect_date->format('Y-m-d')) }}" required
-                       style="max-width:220px;">
+                       value="{{ old('prospect_date', $prospect->prospect_date->format('Y-m-d')) }}"
+                       required style="max-width:220px;">
             </div>
 
             <div class="form-row">
@@ -48,26 +45,26 @@
                 <div class="form-group">
                     <label>Port</label>
                     <input type="text" name="port" class="form-control"
-                           value="{{ old('port', $prospect->port) }}"
-                           placeholder="e.g. Singapore, Rotterdam">
+                           value="{{ old('port', $prospect->port) }}" placeholder="e.g. Singapore">
                 </div>
             </div>
 
+            {{-- ETA / ETB / ETD with time ── --}}
             <div class="form-row" style="grid-template-columns:1fr 1fr 1fr;">
                 <div class="form-group">
-                    <label>ETA</label>
-                    <input type="date" name="eta" class="form-control"
-                           value="{{ old('eta', $prospect->eta?->format('Y-m-d')) }}">
+                    <label>ETA <small style="color:var(--text-dim);font-size:.72rem;">(date &amp; time)</small></label>
+                    <input type="datetime-local" name="eta" class="form-control"
+                           value="{{ old('eta', $prospect->eta?->format('Y-m-d\TH:i')) }}">
                 </div>
                 <div class="form-group">
-                    <label>ETB</label>
-                    <input type="date" name="etb" class="form-control"
-                           value="{{ old('etb', $prospect->etb?->format('Y-m-d')) }}">
+                    <label>ETB <small style="color:var(--text-dim);font-size:.72rem;">(date &amp; time)</small></label>
+                    <input type="datetime-local" name="etb" class="form-control"
+                           value="{{ old('etb', $prospect->etb?->format('Y-m-d\TH:i')) }}">
                 </div>
                 <div class="form-group">
-                    <label>ETD</label>
-                    <input type="date" name="etd" class="form-control"
-                           value="{{ old('etd', $prospect->etd?->format('Y-m-d')) }}">
+                    <label>ETD <small style="color:var(--text-dim);font-size:.72rem;">(date &amp; time)</small></label>
+                    <input type="datetime-local" name="etd" class="form-control"
+                           value="{{ old('etd', $prospect->etd?->format('Y-m-d\TH:i')) }}">
                 </div>
             </div>
 
@@ -75,14 +72,12 @@
                 <div class="form-group">
                     <label>Destination Country</label>
                     <input type="text" name="destination_country" class="form-control"
-                           value="{{ old('destination_country', $prospect->destination_country) }}"
-                           placeholder="e.g. Indonesia, Malaysia">
+                           value="{{ old('destination_country', $prospect->destination_country) }}">
                 </div>
                 <div class="form-group">
                     <label>Transport Company</label>
                     <input type="text" name="forwarder" class="form-control"
-                           value="{{ old('forwarder', $prospect->forwarder) }}"
-                           placeholder="Forwarder company name">
+                           value="{{ old('forwarder', $prospect->forwarder) }}">
                 </div>
             </div>
 
@@ -91,16 +86,17 @@
                     <label>Delivery Date</label>
                     <input type="date" name="delivery_date" class="form-control"
                            value="{{ old('delivery_date', $prospect->delivery_date?->format('Y-m-d')) }}">
-                    <small style="color:var(--text-dim);font-size:.75rem;margin-top:.3rem;display:block;">
-                        <i class="fas fa-info-circle"></i>
-                        Once filled, the "Create Delivery" button will be enabled.
+                    <small style="color:var(--text-dim);font-size:.74rem;margin-top:.25rem;display:block;">
+                        Required to enable the "Create Delivery" button.
                     </small>
                 </div>
                 <div class="form-group">
                     <label>Status <span style="color:var(--red)">*</span></label>
-                    <select name="status" class="form-control">
+                    <select name="status" id="status-select" class="form-control"
+                            onchange="toggleCustomsNote(this.value)">
                         @foreach($statuses as $key => $label)
-                            <option value="{{ $key }}" {{ old('status', $prospect->status) === $key ? 'selected' : '' }}>
+                            <option value="{{ $key }}"
+                                {{ old('status', $prospect->status) === $key ? 'selected' : '' }}>
                                 {{ $label }}
                             </option>
                         @endforeach
@@ -108,18 +104,28 @@
                 </div>
             </div>
 
+            {{-- Customs Note ── --}}
+            <div class="form-group" id="customs-note-group"
+                 style="{{ old('status', $prospect->status) === 'customs' ? '' : 'display:none;' }}">
+                <label>
+                    <i class="fas fa-clipboard-list" style="color:#f5a842;"></i>
+                    Customs Detail
+                    <small style="color:var(--text-dim);font-weight:400;margin-left:.3rem;">— describe the customs issue</small>
+                </label>
+                <input type="text" name="customs_note" class="form-control"
+                       value="{{ old('customs_note', $prospect->customs_note) }}"
+                       placeholder="e.g. Missing B/L, Hold by Bea Cukai, Tariff dispute...">
+            </div>
+
             <div class="form-group">
                 <label>Notes</label>
-                <textarea name="notes" class="form-control" rows="8"
+                <textarea name="notes" class="form-control" rows="7"
                           placeholder="Operational notes...">{{ old('notes', $prospect->notes) }}</textarea>
-                <small style="color:var(--text-dim);font-size:.75rem;margin-top:.3rem;display:block;">
-                    <i class="fas fa-sticky-note"></i>
-                    Vessel delays, departures, agent updates, follow-ups, ETA changes, etc.
-                </small>
             </div>
 
             <div class="modal-footer">
-                <a href="{{ route('prospects.index', ['date' => $prospect->prospect_date->toDateString()]) }}" class="btn btn-outline">Cancel</a>
+                <a href="{{ route('prospects.index', ['date' => $prospect->prospect_date->toDateString()]) }}"
+                   class="btn btn-outline">Cancel</a>
 
                 @if($prospect->delivery_date && $prospect->status !== 'cancelled' && $prospect->status !== 'completed')
                 <div style="margin-right:auto;">
@@ -149,4 +155,14 @@
         </div>
     </div>
 </div>
+@endsection
+
+@section('scripts')
+<script>
+function toggleCustomsNote(status) {
+    const group = document.getElementById('customs-note-group');
+    group.style.display = status === 'customs' ? '' : 'none';
+}
+toggleCustomsNote(document.getElementById('status-select').value);
+</script>
 @endsection
