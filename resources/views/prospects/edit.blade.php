@@ -8,7 +8,7 @@
         <i class="fas fa-edit" style="color:var(--teal)"></i> Edit Prospect
         <small>{{ $prospect->vessel_name }}</small>
     </h2>
-    <a href="{{ route('prospects.index') }}" class="btn btn-outline">
+    <a href="{{ route('prospects.index', ['date' => $prospect->prospect_date->toDateString()]) }}" class="btn btn-outline">
         <i class="fas fa-arrow-left"></i> Back
     </a>
 </div>
@@ -18,17 +18,26 @@
         @if($errors->any())
             <div class="alert alert-error" style="margin-bottom:1.5rem;">
                 <i class="fas fa-exclamation-triangle"></i>
-                <div>
-                    @foreach($errors->all() as $err)
-                        <div>{{ $err }}</div>
-                    @endforeach
-                </div>
+                <div>@foreach($errors->all() as $err)<div>{{ $err }}</div>@endforeach</div>
             </div>
         @endif
 
         <form method="POST" action="{{ route('prospects.update', $prospect) }}">
             @csrf
             @method('PUT')
+
+            {{-- Prospect Date — change to reschedule --}}
+            <div class="form-group">
+                <label>
+                    Prospect Date <span style="color:var(--red)">*</span>
+                    <span style="color:var(--text-dim);font-size:.75rem;font-weight:400;margin-left:.5rem;">
+                        — change this to reschedule the prospect to a different date.
+                    </span>
+                </label>
+                <input type="date" name="prospect_date" class="form-control"
+                       value="{{ old('prospect_date', $prospect->prospect_date->format('Y-m-d')) }}" required
+                       style="max-width:220px;">
+            </div>
 
             <div class="form-row">
                 <div class="form-group">
@@ -70,7 +79,7 @@
                            placeholder="e.g. Indonesia, Malaysia">
                 </div>
                 <div class="form-group">
-                    <label>Forwarder</label>
+                    <label>Transport Company</label>
                     <input type="text" name="forwarder" class="form-control"
                            value="{{ old('forwarder', $prospect->forwarder) }}"
                            placeholder="Forwarder company name">
@@ -102,15 +111,15 @@
             <div class="form-group">
                 <label>Notes</label>
                 <textarea name="notes" class="form-control" rows="8"
-                          placeholder="Operational notes...&#10;e.g.&#10;- Vessel delayed 2 days&#10;- Vessel departed Singapore&#10;- Waiting agent confirmation&#10;- Follow up forwarder">{{ old('notes', $prospect->notes) }}</textarea>
+                          placeholder="Operational notes...">{{ old('notes', $prospect->notes) }}</textarea>
                 <small style="color:var(--text-dim);font-size:.75rem;margin-top:.3rem;display:block;">
                     <i class="fas fa-sticky-note"></i>
-                    Operational notes: vessel delays, departures, agent updates, follow-ups, ETA changes, etc.
+                    Vessel delays, departures, agent updates, follow-ups, ETA changes, etc.
                 </small>
             </div>
 
             <div class="modal-footer">
-                <a href="{{ route('prospects.index') }}" class="btn btn-outline">Cancel</a>
+                <a href="{{ route('prospects.index', ['date' => $prospect->prospect_date->toDateString()]) }}" class="btn btn-outline">Cancel</a>
 
                 @if($prospect->delivery_date && $prospect->status !== 'cancelled' && $prospect->status !== 'completed')
                 <div style="margin-right:auto;">
@@ -133,6 +142,7 @@
 
     <div style="margin-top:1rem;background:var(--navy-card);border:1px solid var(--border);border-radius:12px;padding:1rem 1.25rem;">
         <div style="font-size:.75rem;color:var(--text-dim);display:flex;gap:2rem;flex-wrap:wrap;">
+            <span><i class="fas fa-calendar-day"></i> Prospect Date: {{ $prospect->prospect_date->format('d M Y') }}</span>
             <span><i class="fas fa-calendar-plus"></i> Created: {{ $prospect->created_at->format('d M Y H:i') }}</span>
             <span><i class="fas fa-calendar-edit"></i> Updated: {{ $prospect->updated_at->format('d M Y H:i') }}</span>
             <span><i class="fas fa-hashtag"></i> ID: {{ $prospect->id }}</span>

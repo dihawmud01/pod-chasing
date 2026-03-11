@@ -8,7 +8,7 @@
         <i class="fas fa-plus-circle" style="color:var(--teal)"></i> Add Prospect
         <small>New shipment planning entry</small>
     </h2>
-    <a href="{{ route('prospects.index') }}" class="btn btn-outline">
+    <a href="{{ route('prospects.index', ['date' => $prospectDate]) }}" class="btn btn-outline">
         <i class="fas fa-arrow-left"></i> Back
     </a>
 </div>
@@ -18,16 +18,25 @@
         @if($errors->any())
             <div class="alert alert-error" style="margin-bottom:1.5rem;">
                 <i class="fas fa-exclamation-triangle"></i>
-                <div>
-                    @foreach($errors->all() as $err)
-                        <div>{{ $err }}</div>
-                    @endforeach
-                </div>
+                <div>@foreach($errors->all() as $err)<div>{{ $err }}</div>@endforeach</div>
             </div>
         @endif
 
         <form method="POST" action="{{ route('prospects.store') }}">
             @csrf
+
+            {{-- Prospect Date (the daily "slot" this prospect belongs to) --}}
+            <div class="form-group">
+                <label>
+                    Prospect Date <span style="color:var(--red)">*</span>
+                    <span style="color:var(--text-dim);font-size:.75rem;font-weight:400;margin-left:.5rem;">
+                        — the date this prospect is logged. Change to reschedule.
+                    </span>
+                </label>
+                <input type="date" name="prospect_date" class="form-control"
+                       value="{{ old('prospect_date', $prospectDate) }}" required
+                       style="max-width:220px;">
+            </div>
 
             <div class="form-row">
                 <div class="form-group">
@@ -77,7 +86,7 @@
                            value="{{ old('delivery_date') }}">
                     <small style="color:var(--text-dim);font-size:.75rem;margin-top:.3rem;display:block;">
                         <i class="fas fa-info-circle"></i>
-                        Fill this when delivery date is confirmed. Required to enable the "Create Delivery" button.
+                        Fill when delivery date is confirmed. Required to enable the "Create Delivery" button.
                     </small>
                 </div>
                 <div class="form-group">
@@ -98,12 +107,12 @@
                           placeholder="Operational notes...&#10;e.g.&#10;- Vessel delayed 2 days&#10;- Vessel departed Singapore&#10;- Waiting agent confirmation&#10;- Follow up forwarder">{{ old('notes') }}</textarea>
                 <small style="color:var(--text-dim);font-size:.75rem;margin-top:.3rem;display:block;">
                     <i class="fas fa-sticky-note"></i>
-                    Use this field for operational notes: vessel delays, departures, agent updates, follow-ups, etc.
+                    Vessel delays, departures, agent updates, follow-ups, ETA changes, etc.
                 </small>
             </div>
 
             <div class="modal-footer">
-                <a href="{{ route('prospects.index') }}" class="btn btn-outline">Cancel</a>
+                <a href="{{ route('prospects.index', ['date' => $prospectDate]) }}" class="btn btn-outline">Cancel</a>
                 <button type="submit" class="btn btn-teal">
                     <i class="fas fa-save"></i> Save Prospect
                 </button>

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Prospect extends Model
 {
     protected $fillable = [
+        'prospect_date',
         'vessel_name',
         'port',
         'eta',
@@ -20,6 +21,7 @@ class Prospect extends Model
     ];
 
     protected $casts = [
+        'prospect_date' => 'date',
         'eta'           => 'date',
         'etb'           => 'date',
         'etd'           => 'date',

@@ -11,37 +11,36 @@ class ProspectController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Prospect::orderBy('eta')->orderBy('id');
+        $date  = $request->get('date', now()->toDateString());
+        $query = Prospect::whereDate('prospect_date', $date)->orderBy('id');
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
-        if ($request->filled('eta_date')) {
-            $query->whereDate('eta', $request->eta_date);
-        }
-
         $prospects = $query->get();
         $statuses  = Prospect::$statuses;
-        $etaDate   = $request->get('eta_date', '');
 
-        return view('prospects.index', compact('prospects', 'statuses', 'etaDate'));
+        return view('prospects.index', compact('prospects', 'statuses', 'date'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
-        $statuses = Prospect::$statuses;
-        return view('prospects.create', compact('statuses'));
+        $statuses      = Prospect::$statuses;
+        $prospectDate  = $request->get('date', now()->toDateString());
+        return view('prospects.create', compact('statuses', 'prospectDate'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'vessel_name' => 'required|string|max:255',
-            'status'      => 'required|in:' . implode(',', array_keys(Prospect::$statuses)),
+            'vessel_name'  => 'required|string|max:255',
+            'status'       => 'required|in:' . implode(',', array_keys(Prospect::$statuses)),
+            'prospect_date'=> 'required|date',
         ]);
 
         Prospect::create([
+            'prospect_date'       => $request->prospect_date,
             'vessel_name'         => $request->vessel_name,
             'port'                => $request->port,
             'eta'                 => $request->eta ?: null,
@@ -54,7 +53,7 @@ class ProspectController extends Controller
             'notes'               => $request->notes,
         ]);
 
-        return redirect()->route('prospects.index')
+        return redirect()->route('prospects.index', ['date' => $request->prospect_date])
             ->with('success', 'Prospect added successfully!');
     }
 
@@ -67,11 +66,13 @@ class ProspectController extends Controller
     public function update(Request $request, Prospect $prospect)
     {
         $request->validate([
-            'vessel_name' => 'required|string|max:255',
-            'status'      => 'required|in:' . implode(',', array_keys(Prospect::$statuses)),
+            'vessel_name'  => 'required|string|max:255',
+            'status'       => 'required|in:' . implode(',', array_keys(Prospect::$statuses)),
+            'prospect_date'=> 'required|date',
         ]);
 
         $prospect->update([
+            'prospect_date'       => $request->prospect_date,
             'vessel_name'         => $request->vessel_name,
             'port'                => $request->port,
             'eta'                 => $request->eta ?: null,
@@ -84,14 +85,15 @@ class ProspectController extends Controller
             'notes'               => $request->notes,
         ]);
 
-        return redirect()->route('prospects.index')
+        return redirect()->route('prospects.index', ['date' => $request->prospect_date])
             ->with('success', 'Prospect updated successfully!');
     }
 
     public function destroy(Prospect $prospect)
     {
+        $date = $prospect->prospect_date->toDateString();
         $prospect->delete();
-        return redirect()->route('prospects.index')
+        return redirect()->route('prospects.index', ['date' => $date])
             ->with('success', 'Prospect deleted successfully!');
     }
 
@@ -121,37 +123,30 @@ class ProspectController extends Controller
     }
 
     /**
-     * Export filtered prospects list as a PDF.
+     * Export prospects list as PDF (respects date + status filter).
      */
     public function exportPdf(Request $request)
     {
-        $query = Prospect::orderBy('eta')->orderBy('id');
+        $date  = $request->get('date', now()->toDateString());
+        $query = Prospect::whereDate('prospect_date', $date)->orderBy('id');
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
-        if ($request->filled('eta_date')) {
-            $query->whereDate('eta', $request->eta_date);
-        }
+        $prospects = $query->get();
+        $statuses  = Prospect::$statuses;
 
-        $prospects   = $query->get();
-        $statuses    = Prospect::$statuses;
-        $etaDate     = $request->get('eta_date', '');
-
-        $filterParts = [];
+        $filterParts = [\Carbon\Carbon::parse($date)->format('d M Y')];
         if ($request->filled('status')) {
             $filterParts[] = 'Status: ' . ($statuses[$request->status] ?? ucfirst($request->status));
         }
-        if ($etaDate) {
-            $filterParts[] = 'ETA: ' . \Carbon\Carbon::parse($etaDate)->format('d M Y');
-        }
-        $filterLabel = $filterParts ? implode(' | ', $filterParts) : 'All';
+        $filterLabel = implode(' | ', $filterParts);
 
-        $pdf = Pdf::loadView('prospects.pdf', compact('prospects', 'statuses', 'filterLabel', 'etaDate'))
+        $pdf = Pdf::loadView('prospects.pdf', compact('prospects', 'statuses', 'filterLabel', 'date'))
             ->setPaper('a4', 'landscape');
 
-        $filename = 'prospects-' . now()->format('Ymd-His') . '.pdf';
+        $filename = 'prospects-' . $date . '.pdf';
 
         return $pdf->download($filename);
     }

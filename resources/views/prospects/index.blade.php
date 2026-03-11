@@ -5,12 +5,12 @@
 @section('styles')
 <style>
     .badge-planning          { background: rgba(99,130,200,.2);  color: #8aaff5; border: 1px solid rgba(99,130,200,.3); }
-    .badge-confirmed          { background: rgba(39,174,96,.2);   color: #4cd98a; border: 1px solid rgba(39,174,96,.35); }
-    .badge-waiting_customers  { background: rgba(180,100,240,.2); color: #d08cf5; border: 1px solid rgba(180,100,240,.3); }
-    .badge-customs            { background: rgba(240,150,40,.2);  color: #f5a842; border: 1px solid rgba(240,150,40,.35); }
-    .badge-delayed            { background: rgba(240,180,41,.2);  color: #f5c842; border: 1px solid rgba(240,180,41,.35); }
-    .badge-cancelled          { background: rgba(224,82,82,.2);   color: #f07070; border: 1px solid rgba(224,82,82,.3); }
-    .badge-completed          { background: rgba(0,201,177,.15);  color: #00c9b1; border: 1px solid rgba(0,201,177,.3); }
+    .badge-confirmed         { background: rgba(39,174,96,.2);   color: #4cd98a; border: 1px solid rgba(39,174,96,.35); }
+    .badge-waiting_customers { background: rgba(180,100,240,.2); color: #d08cf5; border: 1px solid rgba(180,100,240,.3); }
+    .badge-customs           { background: rgba(240,150,40,.2);  color: #f5a842; border: 1px solid rgba(240,150,40,.35); }
+    .badge-delayed           { background: rgba(240,180,41,.2);  color: #f5c842; border: 1px solid rgba(240,180,41,.35); }
+    .badge-cancelled         { background: rgba(224,82,82,.2);   color: #f07070; border: 1px solid rgba(224,82,82,.3); }
+    .badge-completed         { background: rgba(0,201,177,.15);  color: #00c9b1; border: 1px solid rgba(0,201,177,.3); }
 
     .notes-preview {
         max-width: 200px;
@@ -40,26 +40,23 @@
 @endsection
 
 @section('content')
+
+@php $dateFormatted = \Carbon\Carbon::parse($date)->format('d F Y'); @endphp
+
 <div class="toolbar">
     <h2>
         <i class="fas fa-binoculars" style="color:var(--teal)"></i> Prospects
-        <small>Shipment Planning — {{ $prospects->count() }} records</small>
+        <small>{{ $dateFormatted }} &nbsp;·&nbsp; {{ $prospects->count() }} records</small>
     </h2>
 
     <div class="filter-bar">
-        <form method="GET" action="{{ route('prospects.index') }}" style="display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;" id="filterForm">
-            {{-- Date filter (by ETA) --}}
-            <input type="date" name="eta_date" class="input-date"
-                   value="{{ $etaDate }}"
-                   onchange="document.getElementById('filterForm').submit()"
-                   title="Filter by ETA date">
+        <form method="GET" action="{{ route('prospects.index') }}"
+              style="display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;" id="filterForm">
 
-            @if($etaDate)
-            <a href="{{ route('prospects.index', array_filter(['status' => request('status')])) }}"
-               class="btn btn-outline btn-sm" title="Clear date filter">
-                <i class="fas fa-times"></i>
-            </a>
-            @endif
+            {{-- Date picker — filters by prospect_date --}}
+            <input type="date" name="date" class="input-date"
+                   value="{{ $date }}"
+                   onchange="document.getElementById('filterForm').submit()">
 
             {{-- Status filter --}}
             <select name="status" onchange="document.getElementById('filterForm').submit()">
@@ -72,13 +69,13 @@
             </select>
         </form>
 
-        {{-- Export PDF (preserves active filters) --}}
-        <a href="{{ route('prospects.exportPdf', array_filter(['status' => request('status'), 'eta_date' => $etaDate])) }}"
+        {{-- Export PDF (preserves active date + status filters) --}}
+        <a href="{{ route('prospects.exportPdf', array_filter(['date' => $date, 'status' => request('status')])) }}"
            class="btn btn-purple" target="_blank">
             <i class="fas fa-file-pdf"></i> Export PDF
         </a>
 
-        <a href="{{ route('prospects.create') }}" class="btn btn-teal">
+        <a href="{{ route('prospects.create', ['date' => $date]) }}" class="btn btn-teal">
             <i class="fas fa-plus"></i> Add Prospect
         </a>
     </div>
@@ -171,10 +168,10 @@
                     <td colspan="12">
                         <div class="no-data">
                             <i class="fas fa-binoculars"></i>
-                            No prospects found.
+                            No prospects found for {{ $dateFormatted }}.
                             <div style="margin-top:.75rem;">
-                                <a href="{{ route('prospects.create') }}" class="btn btn-teal">
-                                    <i class="fas fa-plus"></i> Add First Prospect
+                                <a href="{{ route('prospects.create', ['date' => $date]) }}" class="btn btn-teal">
+                                    <i class="fas fa-plus"></i> Add Prospect for this Date
                                 </a>
                             </div>
                         </div>
