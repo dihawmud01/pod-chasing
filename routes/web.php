@@ -21,3 +21,5 @@ Route::patch('/prospects/{prospect}/quick-status', [ProspectController::class, '
     ->name('prospects.quickStatus');
 Route::get('/prospects-export-pdf', [ProspectController::class, 'exportPdf'])
     ->name('prospects.exportPdf');
+Route::get('/notifications', [ProspectController::class, 'notifications'])
+    ->name('notifications');

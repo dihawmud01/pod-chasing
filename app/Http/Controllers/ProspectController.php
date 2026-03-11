@@ -184,4 +184,50 @@ class ProspectController extends Controller
 
         return $pdf->download('prospects-' . $date . '.pdf');
     }
+
+    /**
+     * Global notification endpoint for the bell icon (JSON).
+     */
+    public function notifications()
+    {
+        $items = collect();
+
+        // Delivery overdue
+        Prospect::whereNotNull('delivery_date')
+            ->whereDate('delivery_date', '<', now()->toDateString())
+            ->whereNotIn('status', ['completed', 'cancelled'])
+            ->orderBy('delivery_date')
+            ->get()
+            ->each(function ($p) use ($items) {
+                $items->push([
+                    'type'    => 'danger',
+                    'icon'    => 'exclamation-circle',
+                    'title'   => 'Delivery Overdue',
+                    'message' => $p->vessel_name . ' — delivery was '
+                        . $p->delivery_date->format('d M Y')
+                        . ' (' . $p->delivery_date->diffForHumans() . ')',
+                    'url'     => route('prospects.edit', $p),
+                ]);
+            });
+
+        // Confirmed but no delivery date
+        Prospect::where('status', 'confirmed')
+            ->whereNull('delivery_date')
+            ->orderBy('prospect_date')
+            ->get()
+            ->each(function ($p) use ($items) {
+                $items->push([
+                    'type'    => 'warning',
+                    'icon'    => 'calendar-times',
+                    'title'   => 'No Delivery Date',
+                    'message' => $p->vessel_name . ' — confirmed but delivery date not set',
+                    'url'     => route('prospects.edit', $p),
+                ]);
+            });
+
+        return response()->json([
+            'total' => $items->count(),
+            'items' => $items->values(),
+        ]);
+    }
 }

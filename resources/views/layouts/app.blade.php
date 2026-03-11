@@ -66,7 +66,82 @@
             box-shadow: 0 0 18px rgba(0,201,177,.4);
         }
         .topbar-brand span { color: var(--teal); }
-        .topbar-right { display: flex; align-items: center; gap: 1.5rem; }
+        .topbar-right { display: flex; align-items: center; gap: 1.25rem; }
+
+        /* ── BELL NOTIFICATION ── */
+        .notif-wrap { position: relative; }
+        .notif-btn {
+            background: none; border: none; cursor: pointer;
+            color: var(--text-dim); font-size: 1.15rem;
+            padding: .3rem .45rem;
+            border-radius: 8px; transition: all .18s;
+            position: relative; line-height: 1;
+        }
+        .notif-btn:hover { color: var(--teal); background: rgba(0,201,177,.1); }
+        .notif-badge {
+            position: absolute; top: -3px; right: -3px;
+            background: #e05252; color: #fff;
+            font-size: .6rem; font-weight: 700;
+            min-width: 16px; height: 16px;
+            border-radius: 10px; padding: 0 4px;
+            display: flex; align-items: center; justify-content: center;
+            pointer-events: none;
+        }
+        .notif-dropdown {
+            display: none;
+            position: absolute; top: calc(100% + 10px); right: 0;
+            width: 340px;
+            background: var(--navy-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            box-shadow: 0 16px 48px rgba(0,0,0,.45);
+            z-index: 9999;
+            overflow: hidden;
+        }
+        .notif-dropdown.open { display: block; }
+        .notif-header {
+            padding: .85rem 1.1rem .65rem;
+            border-bottom: 1px solid var(--border);
+            font-size: .78rem; font-weight: 700;
+            color: var(--text); display: flex; align-items: center;
+            justify-content: space-between;
+        }
+        .notif-header span { color: var(--text-dim); font-weight: 400; }
+        .notif-list { max-height: 380px; overflow-y: auto; }
+        .notif-item {
+            display: flex; align-items: flex-start; gap: .75rem;
+            padding: .75rem 1.1rem;
+            border-bottom: 1px solid rgba(255,255,255,.04);
+            text-decoration: none;
+            transition: background .15s;
+        }
+        .notif-item:hover { background: rgba(255,255,255,.04); }
+        .notif-item:last-child { border-bottom: none; }
+        .notif-icon {
+            width: 30px; height: 30px; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: .8rem; flex-shrink: 0; margin-top: 1px;
+        }
+        .notif-icon.danger  { background: rgba(224,82,82,.18);  color: #f07070; }
+        .notif-icon.warning { background: rgba(240,180,41,.15); color: #f5c842; }
+        .notif-text { flex: 1; min-width: 0; }
+        .notif-title { font-size: .76rem; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+        .notif-title.danger  { color: #f07070; }
+        .notif-title.warning { color: #f5c842; }
+        .notif-msg { font-size: .72rem; color: var(--text-dim); line-height: 1.35;
+                     white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .notif-empty {
+            padding: 2rem 1rem; text-align: center;
+            font-size: .8rem; color: var(--text-dim);
+        }
+        .notif-empty i { font-size: 1.6rem; display: block; margin-bottom: .5rem; color: var(--teal); opacity:.5; }
+        .notif-footer {
+            padding: .6rem 1.1rem;
+            border-top: 1px solid var(--border);
+            text-align: center;
+        }
+        .notif-footer a { font-size: .74rem; color: var(--teal); text-decoration: none; }
+        .notif-footer a:hover { text-decoration: underline; }
 
         /* ── NAV MENU ── */
         .topbar-nav { display: flex; align-items: center; gap: .25rem; }
@@ -420,6 +495,29 @@
         </nav>
 
         <div class="topbar-right">
+            {{-- Bell Notification --}}
+            <div class="notif-wrap" id="notifWrap">
+                <button class="notif-btn" id="notifBtn"
+                        onclick="toggleNotifDropdown(event)"
+                        title="Notifications" aria-label="Notifications">
+                    <i class="fas fa-bell"></i>
+                    <span class="notif-badge" id="notifBadge" style="display:none;"></span>
+                </button>
+
+                <div class="notif-dropdown" id="notifDropdown">
+                    <div class="notif-header">
+                        <div><i class="fas fa-bell" style="color:var(--teal);margin-right:.4rem;"></i> Notifications</div>
+                        <span id="notifCount">Loading…</span>
+                    </div>
+                    <div class="notif-list" id="notifList">
+                        <div class="notif-empty"><i class="fas fa-spinner fa-spin"></i> Loading…</div>
+                    </div>
+                    <div class="notif-footer">
+                        <a href="{{ route('prospects.index') }}">View all Prospects →</a>
+                    </div>
+                </div>
+            </div>
+
             <div class="clock" id="clock"><i class="far fa-clock"></i> --:--:--</div>
         </div>
     </header>
@@ -436,7 +534,7 @@
     </main>
 
     <script>
-        // realtime clock
+        // ── Clock ──
         function updateClock() {
             const now = new Date();
             document.getElementById('clock').innerHTML =
@@ -446,6 +544,78 @@
         }
         updateClock();
         setInterval(updateClock, 1000);
+
+        // ── Notification Bell ──
+        let notifLoaded = false;
+
+        function toggleNotifDropdown(e) {
+            e.stopPropagation();
+            const dd = document.getElementById('notifDropdown');
+            dd.classList.toggle('open');
+            if (dd.classList.contains('open') && !notifLoaded) {
+                loadNotifications();
+            }
+        }
+
+        function loadNotifications() {
+            fetch('/notifications')
+                .then(r => r.json())
+                .then(data => {
+                    notifLoaded = true;
+                    const list  = document.getElementById('notifList');
+                    const badge = document.getElementById('notifBadge');
+                    const count = document.getElementById('notifCount');
+
+                    count.textContent = data.total + ' alert' + (data.total !== 1 ? 's' : '');
+
+                    if (data.total > 0) {
+                        badge.textContent = data.total > 9 ? '9+' : data.total;
+                        badge.style.display = 'flex';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+
+                    if (data.items.length === 0) {
+                        list.innerHTML = '<div class="notif-empty"><i class="fas fa-check-circle"></i>All clear! No issues found.</div>';
+                        return;
+                    }
+
+                    list.innerHTML = data.items.map(item => `
+                        <a href="${item.url}" class="notif-item">
+                            <div class="notif-icon ${item.type}">
+                                <i class="fas fa-${item.icon}"></i>
+                            </div>
+                            <div class="notif-text">
+                                <div class="notif-title ${item.type}">${item.title}</div>
+                                <div class="notif-msg" title="${item.message}">${item.message}</div>
+                            </div>
+                        </a>
+                    `).join('');
+                })
+                .catch(() => {
+                    document.getElementById('notifList').innerHTML =
+                        '<div class="notif-empty">Failed to load notifications.</div>';
+                });
+        }
+
+        // Fetch count badge on page load (without opening dropdown)
+        fetch('/notifications')
+            .then(r => r.json())
+            .then(data => {
+                if (data.total > 0) {
+                    const badge = document.getElementById('notifBadge');
+                    badge.textContent = data.total > 9 ? '9+' : data.total;
+                    badge.style.display = 'flex';
+                }
+            });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            const wrap = document.getElementById('notifWrap');
+            if (wrap && !wrap.contains(e.target)) {
+                document.getElementById('notifDropdown').classList.remove('open');
+            }
+        });
     </script>
     @yield('scripts')
 </body>
