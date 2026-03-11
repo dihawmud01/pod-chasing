@@ -28,13 +28,13 @@ class ProspectController extends Controller
             ->orderBy('delivery_date')
             ->get();
 
-        $confirmedNoDates = Prospect::where('status', 'confirmed')
+        $arrangedNoDates = Prospect::where('status', 'arranged')
             ->whereNull('delivery_date')
             ->orderBy('prospect_date')
             ->get();
 
         return view('prospects.index', compact(
-            'prospects', 'statuses', 'date', 'overdueProspects', 'confirmedNoDates'
+            'prospects', 'statuses', 'date', 'overdueProspects', 'arrangedNoDates'
         ));
     }
 
@@ -210,8 +210,8 @@ class ProspectController extends Controller
                 ]);
             });
 
-        // Confirmed but no delivery date
-        Prospect::where('status', 'confirmed')
+        // Arranged but no delivery date
+        Prospect::where('status', 'arranged')
             ->whereNull('delivery_date')
             ->orderBy('prospect_date')
             ->get()
@@ -220,7 +220,7 @@ class ProspectController extends Controller
                     'type'    => 'warning',
                     'icon'    => 'calendar-times',
                     'title'   => 'No Delivery Date',
-                    'message' => $p->vessel_name . ' — confirmed but delivery date not set',
+                    'message' => $p->vessel_name . ' — arranged but delivery date not set',
                     'url'     => route('prospects.edit', $p),
                 ]);
             });

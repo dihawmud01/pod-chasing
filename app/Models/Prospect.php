@@ -31,7 +31,7 @@ class Prospect extends Model
 
     public static array $statuses = [
         'planning'          => 'Planning',
-        'confirmed'         => 'Confirmed',
+        'arranged'          => 'Arranged',
         'waiting_customers' => 'Waiting Customers',
         'customs'           => 'Customs',
         'delayed'           => 'Delayed',

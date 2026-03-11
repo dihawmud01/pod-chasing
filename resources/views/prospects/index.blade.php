@@ -6,7 +6,7 @@
 <style>
     /* ── Status badges ── */
     .badge-planning          { background: rgba(99,130,200,.2);  color: #8aaff5; border: 1px solid rgba(99,130,200,.3); }
-    .badge-confirmed         { background: rgba(39,174,96,.2);   color: #4cd98a; border: 1px solid rgba(39,174,96,.35); }
+    .badge-arranged          { background: rgba(39,174,96,.2);   color: #4cd98a; border: 1px solid rgba(39,174,96,.35); }
     .badge-waiting_customers { background: rgba(180,100,240,.2); color: #d08cf5; border: 1px solid rgba(180,100,240,.3); }
     .badge-customs           { background: rgba(240,150,40,.2);  color: #f5a842; border: 1px solid rgba(240,150,40,.35); }
     .badge-delayed           { background: rgba(240,180,41,.2);  color: #f5c842; border: 1px solid rgba(240,180,41,.35); }
@@ -28,7 +28,7 @@
     .status-select:hover { opacity: .85; }
     .status-select.saving { opacity: .5; pointer-events: none; }
     .status-select.badge-planning          { background-color: rgba(99,130,200,.2);  color: #8aaff5; }
-    .status-select.badge-confirmed         { background-color: rgba(39,174,96,.2);   color: #4cd98a; }
+    .status-select.badge-arranged          { background-color: rgba(39,174,96,.2);   color: #4cd98a; }
     .status-select.badge-waiting_customers { background-color: rgba(180,100,240,.2); color: #d08cf5; }
     .status-select.badge-customs           { background-color: rgba(240,150,40,.2);  color: #f5a842; }
     .status-select.badge-delayed           { background-color: rgba(240,180,41,.2);  color: #f5c842; }
@@ -100,7 +100,7 @@
     </div>
     @endforeach
 
-    @foreach($confirmedNoDates as $cp)
+    @foreach($arrangedNoDates as $cp)
     <div class="alert-item alert-warning">
         <i class="fas fa-calendar-times"></i>
         <div>
@@ -321,7 +321,7 @@ function quickStatus(el) {
     .then(data => {
         if (data.success) {
             // Re-colour badge
-            ['planning','confirmed','waiting_customers','customs','delayed','cancelled','completed']
+            ['planning','arranged','waiting_customers','customs','delayed','cancelled','completed']
                 .forEach(s => el.classList.remove('badge-' + s));
             el.classList.add('badge-' + status);
             el.dataset.status = status;
