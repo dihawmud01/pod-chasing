@@ -35,6 +35,25 @@
                        value="{{ old('prospect_date', $prospectDate) }}" required style="max-width:220px;">
             </div>
 
+            {{-- Section (NL-BE / EU+GB) --}}
+            <div class="form-group">
+                <label>Section <span style="color:var(--red)">*</span></label>
+                <div style="display:flex;gap:.75rem;margin-top:.35rem;">
+                    @foreach($sections as $key => $label)
+                    <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer;
+                                  padding:.5rem 1.1rem;border-radius:10px;user-select:none;
+                                  border:1px solid {{ $key === 'nl_be' ? 'rgba(99,130,200,.3)' : 'rgba(39,174,96,.3)' }};
+                                  background:{{ $key === 'nl_be' ? 'rgba(99,130,200,.08)' : 'rgba(39,174,96,.08)' }};">
+                        <input type="radio" name="section" value="{{ $key }}"
+                               {{ old('section', 'nl_be') === $key ? 'checked' : '' }}
+                               style="accent-color:{{ $key === 'nl_be' ? '#8aaff5' : '#4cd98a' }}">
+                        <span style="font-weight:700;font-size:.88rem;
+                                     color:{{ $key === 'nl_be' ? '#8aaff5' : '#4cd98a' }}">{{ $label }}</span>
+                    </label>
+                    @endforeach
+                </div>
+            </div>
+
             <div class="form-row">
                 <div class="form-group">
                     <label>Vessel Name <span style="color:var(--red)">*</span></label>

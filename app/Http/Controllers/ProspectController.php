@@ -18,8 +18,9 @@ class ProspectController extends Controller
             $query->where('status', $request->status);
         }
 
-        $prospects = $query->get();
+        $prospects = $query->get()->groupBy('section');
         $statuses  = Prospect::$statuses;
+        $sections  = Prospect::$sections;
 
         // ── Alert data (across ALL dates, not just current view) ──
         $overdueProspects = Prospect::whereNotNull('delivery_date')
@@ -34,15 +35,16 @@ class ProspectController extends Controller
             ->get();
 
         return view('prospects.index', compact(
-            'prospects', 'statuses', 'date', 'overdueProspects', 'arrangedNoDates'
+            'prospects', 'statuses', 'sections', 'date', 'overdueProspects', 'arrangedNoDates'
         ));
     }
 
     public function create(Request $request)
     {
         $statuses     = Prospect::$statuses;
+        $sections     = Prospect::$sections;
         $prospectDate = $request->get('date', now()->toDateString());
-        return view('prospects.create', compact('statuses', 'prospectDate'));
+        return view('prospects.create', compact('statuses', 'sections', 'prospectDate'));
     }
 
     public function store(Request $request)
@@ -55,6 +57,7 @@ class ProspectController extends Controller
 
         Prospect::create([
             'prospect_date'       => $request->prospect_date,
+            'section'             => $request->section ?? 'nl_be',
             'vessel_name'         => $request->vessel_name,
             'port'                => $request->port,
             'eta'                 => $request->eta ?: null,
@@ -75,7 +78,8 @@ class ProspectController extends Controller
     public function edit(Prospect $prospect)
     {
         $statuses = Prospect::$statuses;
-        return view('prospects.edit', compact('prospect', 'statuses'));
+        $sections = Prospect::$sections;
+        return view('prospects.edit', compact('prospect', 'statuses', 'sections'));
     }
 
     public function update(Request $request, Prospect $prospect)
@@ -88,6 +92,7 @@ class ProspectController extends Controller
 
         $prospect->update([
             'prospect_date'       => $request->prospect_date,
+            'section'             => $request->section ?? 'nl_be',
             'vessel_name'         => $request->vessel_name,
             'port'                => $request->port,
             'eta'                 => $request->eta ?: null,

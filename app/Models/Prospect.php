@@ -8,6 +8,7 @@ class Prospect extends Model
 {
     protected $fillable = [
         'prospect_date',
+        'section',
         'vessel_name',
         'port',
         'eta',
@@ -27,6 +28,11 @@ class Prospect extends Model
         'etb'           => 'datetime',
         'etd'           => 'datetime',
         'delivery_date' => 'date',
+    ];
+
+    public static array $sections = [
+        'nl_be' => 'NL-BE',
+        'eu_gb' => 'EU+GB',
     ];
 
     public static array $statuses = [

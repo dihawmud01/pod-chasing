@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" id="htmlRoot">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -25,6 +25,46 @@
             --border:    rgba(0,201,177,.18);
             --shadow:    0 8px 32px rgba(0,0,0,.45);
         }
+
+        /* ── LIGHT THEME ── */
+        [data-theme="light"] {
+            --navy:      #f0f4fb;
+            --navy-mid:  #e2eaf6;
+            --navy-card: #ffffff;
+            --navy-row:  #f7f9fd;
+            --teal:      #007d6e;
+            --teal-dim:  #005f54;
+            --gold:      #b87a00;
+            --gold-dim:  #8a5c00;
+            --red:       #c0392b;
+            --green:     #1e8449;
+            --text:      #1a2a44;
+            --text-dim:  #4a6080;
+            --border:    rgba(0,125,110,.18);
+            --shadow:    0 8px 32px rgba(0,0,0,.12);
+        }
+        [data-theme="light"] body { background: var(--navy); }
+        [data-theme="light"] .topbar {
+            background: linear-gradient(135deg, #dde9f8 0%, #e8f0fc 60%, #f0f4fb 100%);
+            box-shadow: 0 2px 12px rgba(0,0,0,.08);
+        }
+        [data-theme="light"] .topbar-brand { color: #1a2a44; }
+        [data-theme="light"] .table-wrap { background: #fff; }
+        [data-theme="light"] table thead th { background: #e8f0fc; color: #2d4a70; }
+        [data-theme="light"] table tbody tr:hover { background: rgba(0,125,110,.04); }
+        [data-theme="light"] .filter-bar select { background: #f0f4fb; color: #1a2a44; }
+        [data-theme="light"] .notif-dropdown { background: #fff; }
+        [data-theme="light"] .notif-btn { color: #4a6080; }
+        [data-theme="light"] .notif-btn:hover { background: rgba(0,125,110,.1); }
+
+        /* ── THEME TOGGLE BUTTON ── */
+        .theme-btn {
+            background: none; border: 1px solid var(--border); cursor: pointer;
+            color: var(--text-dim); font-size: .9rem;
+            padding: .28rem .55rem; border-radius: 8px;
+            transition: all .18s; line-height: 1;
+        }
+        .theme-btn:hover { color: var(--teal); border-color: var(--teal); background: rgba(0,201,177,.08); }
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
@@ -495,6 +535,11 @@
         </nav>
 
         <div class="topbar-right">
+            {{-- Theme Toggle --}}
+            <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Toggle Theme">
+                <i class="fas fa-moon" id="themeIcon"></i>
+            </button>
+
             {{-- Bell Notification --}}
             <div class="notif-wrap" id="notifWrap">
                 <button class="notif-btn" id="notifBtn"
@@ -533,7 +578,30 @@
         @yield('content')
     </main>
 
+    {{-- Prevent theme flash on load --}}
     <script>
+        (function() {
+            const t = localStorage.getItem('pod-theme');
+            if (t === 'light') document.getElementById('htmlRoot').setAttribute('data-theme', 'light');
+        })();
+    </script>
+
+    <script>
+        // ── Theme Toggle ──
+        function toggleTheme() {
+            const html = document.getElementById('htmlRoot');
+            const isLight = html.getAttribute('data-theme') === 'light';
+            html.setAttribute('data-theme', isLight ? '' : 'light');
+            localStorage.setItem('pod-theme', isLight ? 'dark' : 'light');
+            document.getElementById('themeIcon').className = isLight ? 'fas fa-moon' : 'fas fa-sun';
+        }
+
+        // Set correct icon on load
+        (function() {
+            const t = localStorage.getItem('pod-theme');
+            if (t === 'light') document.getElementById('themeIcon').className = 'fas fa-sun';
+        })();
+
         // ── Clock ──
         function updateClock() {
             const now = new Date();
@@ -598,7 +666,7 @@
                 });
         }
 
-        // Fetch count badge on page load (without opening dropdown)
+        // Fetch count badge on page load
         fetch('/notifications')
             .then(r => r.json())
             .then(data => {

@@ -20,10 +20,8 @@
         font-size: .78rem; font-weight: 600; font-family: inherit;
         appearance: none; -webkit-appearance: none;
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23aaa'/%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: right 8px center;
-        padding-right: 24px;
-        transition: opacity .15s;
+        background-repeat: no-repeat; background-position: right 8px center;
+        padding-right: 24px; transition: opacity .15s;
     }
     .status-select:hover { opacity: .85; }
     .status-select.saving { opacity: .5; pointer-events: none; }
@@ -37,10 +35,7 @@
 
     /* ── Alert panel ── */
     .alert-panel { margin-bottom: 1.25rem; display: flex; flex-direction: column; gap: .6rem; }
-    .alert-item {
-        display: flex; align-items: flex-start; gap: .75rem;
-        padding: .7rem 1rem; border-radius: 10px; font-size: .82rem; line-height: 1.4;
-    }
+    .alert-item { display: flex; align-items: flex-start; gap: .75rem; padding: .7rem 1rem; border-radius: 10px; font-size: .82rem; line-height: 1.4; }
     .alert-item i { margin-top: .1rem; font-size: 1rem; flex-shrink: 0; }
     .alert-danger  { background: rgba(224,82,82,.12);  border: 1px solid rgba(224,82,82,.3);  color: #f07070; }
     .alert-warning { background: rgba(240,180,41,.1);  border: 1px solid rgba(240,180,41,.3); color: #f5c842; }
@@ -57,22 +52,34 @@
     .btn-purple { background: rgba(167,139,250,.15); border: 1px solid rgba(167,139,250,.35); color: #c4b5fd; }
     .btn-purple:hover { background: rgba(167,139,250,.28); transform: translateY(-1px); }
 
-    .notes-preview {
-        max-width: 180px; white-space: nowrap; overflow: hidden;
-        text-overflow: ellipsis; color: var(--text-dim); font-size: .8rem; font-style: italic;
-    }
+    .notes-preview { max-width: 160px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-dim); font-size: .8rem; font-style: italic; }
     .datetime-val { display: flex; flex-direction: column; gap: 1px; }
     .datetime-val .dv-date { font-size: .82rem; }
     .datetime-val .dv-time { font-size: .72rem; color: var(--text-dim); font-family: monospace; }
-
-    /* Customs note inline */
     .customs-inline-wrap { margin-top: 4px; }
-    .customs-input {
-        background: rgba(240,150,40,.1); border: 1px solid rgba(240,150,40,.3);
-        color: #f5a842; border-radius: 8px; padding: 3px 8px; font-size: .75rem;
-        font-family: inherit; outline: none; width: 130px;
-    }
+    .customs-input { background: rgba(240,150,40,.1); border: 1px solid rgba(240,150,40,.3); color: #f5a842; border-radius: 8px; padding: 3px 8px; font-size: .75rem; font-family: inherit; outline: none; width: 130px; }
     .customs-input:focus { border-color: #f5a842; }
+
+    /* ── Section boxes ── */
+    .section-block { margin-bottom: 2rem; }
+    .section-heading {
+        display: flex; align-items: center; gap: .6rem;
+        font-size: .9rem; font-weight: 800;
+        letter-spacing: .04em; text-transform: uppercase;
+        color: var(--teal); margin-bottom: .75rem;
+        padding-bottom: .5rem;
+        border-bottom: 2px solid rgba(0,201,177,.2);
+    }
+    .section-heading .section-count {
+        background: rgba(0,201,177,.12); color: var(--teal);
+        border: 1px solid rgba(0,201,177,.25);
+        border-radius: 20px; padding: 1px 10px;
+        font-size: .72rem; font-weight: 700;
+    }
+    .section-nl_be .section-heading { color: #8aaff5; border-color: rgba(99,130,200,.3); }
+    .section-nl_be .section-heading .section-count { background: rgba(99,130,200,.12); color: #8aaff5; border-color: rgba(99,130,200,.25); }
+    .section-eu_gb .section-heading { color: #4cd98a; border-color: rgba(39,174,96,.3); }
+    .section-eu_gb .section-heading .section-count { background: rgba(39,174,96,.12); color: #4cd98a; border-color: rgba(39,174,96,.25); }
 </style>
 @endsection
 
@@ -80,12 +87,12 @@
 @php
     $dateFormatted = \Carbon\Carbon::parse($date)->format('d F Y');
     $csrfToken = csrf_token();
+    $totalCount = collect($sections)->keys()->sum(fn($k) => ($prospects->get($k) ?? collect())->count());
 @endphp
 
 {{-- ── ALERT PANEL ── --}}
-@if($overdueProspects->isNotEmpty() || $confirmedNoDates->isNotEmpty())
+@if($overdueProspects->isNotEmpty() || $arrangedNoDates->isNotEmpty())
 <div class="alert-panel">
-
     @foreach($overdueProspects as $op)
     <div class="alert-item alert-danger">
         <i class="fas fa-exclamation-circle"></i>
@@ -93,24 +100,21 @@
             <strong>Delivery Overdue</strong> —
             <a href="{{ route('prospects.edit', $op) }}">{{ $op->vessel_name }}</a>
             &nbsp;<span class="badge badge-{{ $op->status }}">{{ $op->statusLabel() }}</span>
-            &nbsp;· Delivery date was
-            <strong>{{ $op->delivery_date->format('d M Y') }}</strong>
+            &nbsp;· Delivery was <strong>{{ $op->delivery_date->format('d M Y') }}</strong>
             ({{ $op->delivery_date->diffForHumans() }})
         </div>
     </div>
     @endforeach
-
     @foreach($arrangedNoDates as $cp)
     <div class="alert-item alert-warning">
         <i class="fas fa-calendar-times"></i>
         <div>
-            <strong>Confirmed — No Delivery Date</strong> —
+            <strong>Arranged — No Delivery Date</strong> —
             <a href="{{ route('prospects.edit', $cp) }}">{{ $cp->vessel_name }}</a>
             &nbsp;· Prospect date: {{ $cp->prospect_date->format('d M Y') }}
         </div>
     </div>
     @endforeach
-
 </div>
 @endif
 
@@ -118,13 +122,12 @@
 <div class="toolbar">
     <h2>
         <i class="fas fa-binoculars" style="color:var(--teal)"></i> Prospects
-        <small>{{ $dateFormatted }} &nbsp;·&nbsp; {{ $prospects->count() }} records</small>
+        <small>{{ $dateFormatted }} &nbsp;·&nbsp; {{ $totalCount }} records</small>
     </h2>
     <div class="filter-bar">
         <form method="GET" action="{{ route('prospects.index') }}"
               style="display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;" id="filterForm">
-            <input type="date" name="date" class="input-date"
-                   value="{{ $date }}"
+            <input type="date" name="date" class="input-date" value="{{ $date }}"
                    onchange="document.getElementById('filterForm').submit()">
             <select name="status" onchange="document.getElementById('filterForm').submit()">
                 <option value="">All Statuses</option>
@@ -143,155 +146,140 @@
     </div>
 </div>
 
-{{-- ── TABLE ── --}}
-<div class="table-wrap">
-    <div class="table-scroll">
-        <table>
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Vessel</th>
-                    <th>Port</th>
-                    <th>ETA</th>
-                    <th>ETB</th>
-                    <th>ETD</th>
-                    <th>Destination</th>
-                    <th>Notes</th>
-                    <th>Transport Co.</th>
-                    <th style="min-width:170px;">Status</th>
-                    <th>Delivery Date</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($prospects as $i => $prospect)
-                <tr id="row-{{ $prospect->id }}" class="{{ $prospect->isDeliveryOverdue() ? 'row-warning' : '' }}">
-                    <td style="color:var(--text-dim);font-size:.78rem;">{{ $i + 1 }}</td>
-                    <td><div class="vessel-name">{{ $prospect->vessel_name }}</div></td>
-                    <td>{{ $prospect->port ?? '—' }}</td>
+{{-- ── SECTION BOXES ── --}}
+@foreach($sections as $sectionKey => $sectionLabel)
+@php $sectionProspects = $prospects->get($sectionKey, collect()); @endphp
 
-                    {{-- ETA with optional time --}}
-                    <td>
-                        @if($prospect->eta)
-                            <div class="datetime-val">
-                                <span class="dv-date">{{ $prospect->eta->format('d M Y') }}</span>
-                                @if($prospect->eta->format('H:i') !== '00:00')
-                                    <span class="dv-time">{{ $prospect->eta->format('H:i') }}</span>
-                                @endif
+<div class="section-block section-{{ $sectionKey }}">
+    <div class="section-heading">
+        <i class="fas fa-layer-group"></i>
+        {{ $sectionLabel }}
+        <span class="section-count">{{ $sectionProspects->count() }} records</span>
+    </div>
+
+    <div class="table-wrap">
+        <div class="table-scroll">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Vessel</th>
+                        <th>Port</th>
+                        <th>ETA</th>
+                        <th>ETB</th>
+                        <th>ETD</th>
+                        <th>Destination</th>
+                        <th>Notes</th>
+                        <th>Transport Co.</th>
+                        <th style="min-width:170px;">Status</th>
+                        <th>Delivery Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($sectionProspects as $i => $prospect)
+                    <tr id="row-{{ $prospect->id }}" class="{{ $prospect->isDeliveryOverdue() ? 'row-warning' : '' }}">
+                        <td style="color:var(--text-dim);font-size:.78rem;">{{ $i + 1 }}</td>
+                        <td><div class="vessel-name">{{ $prospect->vessel_name }}</div></td>
+                        <td>{{ $prospect->port ?? '—' }}</td>
+                        <td>
+                            @if($prospect->eta)
+                                <div class="datetime-val">
+                                    <span class="dv-date">{{ $prospect->eta->format('d M Y') }}</span>
+                                    @if($prospect->eta->format('H:i') !== '00:00')<span class="dv-time">{{ $prospect->eta->format('H:i') }}</span>@endif
+                                </div>
+                            @else —@endif
+                        </td>
+                        <td>
+                            @if($prospect->etb)
+                                <div class="datetime-val">
+                                    <span class="dv-date">{{ $prospect->etb->format('d M Y') }}</span>
+                                    @if($prospect->etb->format('H:i') !== '00:00')<span class="dv-time">{{ $prospect->etb->format('H:i') }}</span>@endif
+                                </div>
+                            @else —@endif
+                        </td>
+                        <td>
+                            @if($prospect->etd)
+                                <div class="datetime-val">
+                                    <span class="dv-date">{{ $prospect->etd->format('d M Y') }}</span>
+                                    @if($prospect->etd->format('H:i') !== '00:00')<span class="dv-time">{{ $prospect->etd->format('H:i') }}</span>@endif
+                                </div>
+                            @else —@endif
+                        </td>
+                        <td>{{ $prospect->destination_country ?? '—' }}</td>
+                        <td>
+                            <div class="notes-preview" title="{{ $prospect->notes }}">{{ $prospect->notes ?: '—' }}</div>
+                        </td>
+                        <td>{{ $prospect->forwarder ?? '—' }}</td>
+                        <td>
+                            <select class="status-select badge-{{ $prospect->status }}"
+                                    data-id="{{ $prospect->id }}" data-status="{{ $prospect->status }}"
+                                    onchange="quickStatus(this)">
+                                @foreach($statuses as $key => $label)
+                                    <option value="{{ $key }}" {{ $prospect->status === $key ? 'selected' : '' }}>{{ $label }}</option>
+                                @endforeach
+                            </select>
+                            <div class="customs-inline-wrap" id="customs-wrap-{{ $prospect->id }}"
+                                 style="{{ $prospect->status === 'customs' ? '' : 'display:none;' }}">
+                                <input type="text" class="customs-input"
+                                       id="customs-note-{{ $prospect->id }}"
+                                       value="{{ $prospect->customs_note }}"
+                                       placeholder="Customs detail..."
+                                       onblur="saveCustomsNote({{ $prospect->id }}, this.value)"
+                                       onkeydown="if(event.key==='Enter') this.blur()">
                             </div>
-                        @else —@endif
-                    </td>
-                    <td>
-                        @if($prospect->etb)
-                            <div class="datetime-val">
-                                <span class="dv-date">{{ $prospect->etb->format('d M Y') }}</span>
-                                @if($prospect->etb->format('H:i') !== '00:00')
-                                    <span class="dv-time">{{ $prospect->etb->format('H:i') }}</span>
-                                @endif
-                            </div>
-                        @else —@endif
-                    </td>
-                    <td>
-                        @if($prospect->etd)
-                            <div class="datetime-val">
-                                <span class="dv-date">{{ $prospect->etd->format('d M Y') }}</span>
-                                @if($prospect->etd->format('H:i') !== '00:00')
-                                    <span class="dv-time">{{ $prospect->etd->format('H:i') }}</span>
-                                @endif
-                            </div>
-                        @else —@endif
-                    </td>
-
-                    <td>{{ $prospect->destination_country ?? '—' }}</td>
-                    <td>
-                        <div class="notes-preview" title="{{ $prospect->notes }}">
-                            {{ $prospect->notes ?: '—' }}
-                        </div>
-                    </td>
-                    <td>{{ $prospect->forwarder ?? '—' }}</td>
-
-                    {{-- Inline status select ── --}}
-                    <td>
-                        <select class="status-select badge-{{ $prospect->status }}"
-                                data-id="{{ $prospect->id }}"
-                                data-status="{{ $prospect->status }}"
-                                onchange="quickStatus(this)">
-                            @foreach($statuses as $key => $label)
-                                <option value="{{ $key }}" {{ $prospect->status === $key ? 'selected' : '' }}>
-                                    {{ $label }}
-                                </option>
-                            @endforeach
-                        </select>
-                        {{-- Customs note inline edit ── --}}
-                        <div class="customs-inline-wrap" id="customs-wrap-{{ $prospect->id }}"
-                             style="{{ $prospect->status === 'customs' ? '' : 'display:none;' }}">
-                            <input type="text" class="customs-input"
-                                   id="customs-note-{{ $prospect->id }}"
-                                   value="{{ $prospect->customs_note }}"
-                                   placeholder="Customs detail..."
-                                   onblur="saveCustomsNote({{ $prospect->id }}, this.value)"
-                                   onkeydown="if(event.key==='Enter') this.blur()">
-                        </div>
-                    </td>
-
-                    <td>
-                        @if($prospect->delivery_date)
-                            <span style="color:{{ $prospect->isDeliveryOverdue() ? 'var(--red)' : 'var(--gold)' }};font-weight:600;font-size:.85rem;">
-                                <i class="fas fa-{{ $prospect->isDeliveryOverdue() ? 'exclamation-triangle' : 'calendar-check' }}" style="font-size:.75rem;"></i>
-                                {{ $prospect->delivery_date->format('d M Y') }}
-                            </span>
-                        @else
-                            <span style="color:var(--text-dim);font-size:.8rem;">Not set</span>
-                        @endif
-                    </td>
-
-
-                    <td>
-                        <div style="display:flex;gap:.35rem;flex-wrap:wrap;align-items:center;">
-                            <a href="{{ route('prospects.edit', $prospect) }}"
-                               class="btn btn-outline btn-sm">
-                                <i class="fas fa-edit"></i> Edit
-                            </a>
-
-                            @if($prospect->delivery_date && $prospect->status !== 'cancelled' && $prospect->status !== 'completed')
-                            <form method="POST" action="{{ route('prospects.createDelivery', $prospect) }}"
-                                  onsubmit="return confirm('Create delivery from {{ addslashes($prospect->vessel_name) }}?')">
-                                @csrf
-                                <button type="submit" class="btn btn-gold btn-sm">
-                                    <i class="fas fa-truck"></i> Deliver
-                                </button>
-                            </form>
+                        </td>
+                        <td>
+                            @if($prospect->delivery_date)
+                                <span style="color:{{ $prospect->isDeliveryOverdue() ? 'var(--red)' : 'var(--gold)' }};font-weight:600;font-size:.85rem;">
+                                    <i class="fas fa-{{ $prospect->isDeliveryOverdue() ? 'exclamation-triangle' : 'calendar-check' }}" style="font-size:.75rem;"></i>
+                                    {{ $prospect->delivery_date->format('d M Y') }}
+                                </span>
+                            @else
+                                <span style="color:var(--text-dim);font-size:.8rem;">Not set</span>
                             @endif
-
-                            <form method="POST" action="{{ route('prospects.destroy', $prospect) }}"
-                                  onsubmit="return confirm('Delete this prospect?')">
-                                @csrf @method('DELETE')
-                                <button type="submit" class="btn btn-danger btn-sm btn-icon">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </form>
-                        </div>
-                    </td>
-                </tr>
-                @empty
-                <tr>
-                    <td colspan="12">
-                        <div class="no-data">
-                            <i class="fas fa-binoculars"></i>
-                            No prospects found for {{ $dateFormatted }}.
-                            <div style="margin-top:.75rem;">
-                                <a href="{{ route('prospects.create', ['date' => $date]) }}" class="btn btn-teal">
-                                    <i class="fas fa-plus"></i> Add Prospect for this Date
+                        </td>
+                        <td>
+                            <div style="display:flex;gap:.35rem;flex-wrap:wrap;align-items:center;">
+                                <a href="{{ route('prospects.edit', $prospect) }}" class="btn btn-outline btn-sm">
+                                    <i class="fas fa-edit"></i> Edit
                                 </a>
+                                @if($prospect->delivery_date && $prospect->status !== 'cancelled' && $prospect->status !== 'completed')
+                                <form method="POST" action="{{ route('prospects.createDelivery', $prospect) }}"
+                                      onsubmit="return confirm('Create delivery from {{ addslashes($prospect->vessel_name) }}?')">
+                                    @csrf
+                                    <button type="submit" class="btn btn-gold btn-sm">
+                                        <i class="fas fa-truck"></i> Deliver
+                                    </button>
+                                </form>
+                                @endif
+                                <form method="POST" action="{{ route('prospects.destroy', $prospect) }}"
+                                      onsubmit="return confirm('Delete this prospect?')">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" class="btn btn-danger btn-sm btn-icon">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
                             </div>
-                        </div>
-                    </td>
-                </tr>
-                @endforelse
-            </tbody>
-        </table>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="12">
+                            <div class="no-data" style="padding:1rem 0;">
+                                <i class="fas fa-inbox"></i>
+                                No {{ $sectionLabel }} prospects for {{ $dateFormatted }}.
+                            </div>
+                        </td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
+@endforeach
+
 @endsection
 
 @section('scripts')
@@ -299,37 +287,23 @@
 const CSRF = '{{ $csrfToken }}';
 
 function quickStatus(el) {
-    const id     = el.dataset.id;
-    const status = el.value;
-    const prev   = el.dataset.status;
-
-    // Show/hide customs note field
+    const id = el.dataset.id, status = el.value, prev = el.dataset.status;
     const wrap = document.getElementById('customs-wrap-' + id);
     if (wrap) wrap.style.display = status === 'customs' ? '' : 'none';
-
     el.classList.add('saving');
-
     fetch(`/prospects/${id}/quick-status`, {
         method: 'PATCH',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': CSRF,
-        },
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF },
         body: JSON.stringify({ status }),
     })
     .then(r => r.json())
     .then(data => {
         if (data.success) {
-            // Re-colour badge
             ['planning','arranged','waiting_customers','customs','delayed','cancelled','completed']
                 .forEach(s => el.classList.remove('badge-' + s));
             el.classList.add('badge-' + status);
             el.dataset.status = status;
-
-            // Refresh delivery date cell colour if needed
-        } else {
-            el.value = prev; // rollback
-        }
+        } else { el.value = prev; }
     })
     .catch(() => { el.value = prev; })
     .finally(() => el.classList.remove('saving'));
@@ -338,10 +312,7 @@ function quickStatus(el) {
 function saveCustomsNote(id, note) {
     fetch(`/prospects/${id}/quick-status`, {
         method: 'PATCH',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': CSRF,
-        },
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF },
         body: JSON.stringify({ status: 'customs', customs_note: note }),
     });
 }
