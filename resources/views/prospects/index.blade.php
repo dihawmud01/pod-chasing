@@ -156,10 +156,10 @@
                     <th>ETB</th>
                     <th>ETD</th>
                     <th>Destination</th>
+                    <th>Notes</th>
                     <th>Transport Co.</th>
                     <th style="min-width:170px;">Status</th>
                     <th>Delivery Date</th>
-                    <th>Notes</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -203,6 +203,11 @@
                     </td>
 
                     <td>{{ $prospect->destination_country ?? '—' }}</td>
+                    <td>
+                        <div class="notes-preview" title="{{ $prospect->notes }}">
+                            {{ $prospect->notes ?: '—' }}
+                        </div>
+                    </td>
                     <td>{{ $prospect->forwarder ?? '—' }}</td>
 
                     {{-- Inline status select ── --}}
@@ -240,11 +245,6 @@
                         @endif
                     </td>
 
-                    <td>
-                        <div class="notes-preview" title="{{ $prospect->notes }}">
-                            {{ $prospect->notes ?: '—' }}
-                        </div>
-                    </td>
 
                     <td>
                         <div style="display:flex;gap:.35rem;flex-wrap:wrap;align-items:center;">
