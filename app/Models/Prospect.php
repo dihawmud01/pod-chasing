@@ -27,11 +27,13 @@ class Prospect extends Model
     ];
 
     public static array $statuses = [
-        'planning'  => 'Planning',
-        'confirmed' => 'Confirmed',
-        'delayed'   => 'Delayed',
-        'cancelled' => 'Cancelled',
-        'completed' => 'Completed',
+        'planning'          => 'Planning',
+        'confirmed'         => 'Confirmed',
+        'waiting_customers' => 'Waiting Customers',
+        'customs'           => 'Customs',
+        'delayed'           => 'Delayed',
+        'cancelled'         => 'Cancelled',
+        'completed'         => 'Completed',
     ];
 
     public function statusLabel(): string

@@ -17,10 +17,15 @@ class ProspectController extends Controller
             $query->where('status', $request->status);
         }
 
+        if ($request->filled('eta_date')) {
+            $query->whereDate('eta', $request->eta_date);
+        }
+
         $prospects = $query->get();
         $statuses  = Prospect::$statuses;
+        $etaDate   = $request->get('eta_date', '');
 
-        return view('prospects.index', compact('prospects', 'statuses'));
+        return view('prospects.index', compact('prospects', 'statuses', 'etaDate'));
     }
 
     public function create()
@@ -126,13 +131,24 @@ class ProspectController extends Controller
             $query->where('status', $request->status);
         }
 
+        if ($request->filled('eta_date')) {
+            $query->whereDate('eta', $request->eta_date);
+        }
+
         $prospects   = $query->get();
         $statuses    = Prospect::$statuses;
-        $filterLabel = $request->filled('status')
-            ? ($statuses[$request->status] ?? ucfirst($request->status))
-            : 'All';
+        $etaDate     = $request->get('eta_date', '');
 
-        $pdf = Pdf::loadView('prospects.pdf', compact('prospects', 'statuses', 'filterLabel'))
+        $filterParts = [];
+        if ($request->filled('status')) {
+            $filterParts[] = 'Status: ' . ($statuses[$request->status] ?? ucfirst($request->status));
+        }
+        if ($etaDate) {
+            $filterParts[] = 'ETA: ' . \Carbon\Carbon::parse($etaDate)->format('d M Y');
+        }
+        $filterLabel = $filterParts ? implode(' | ', $filterParts) : 'All';
+
+        $pdf = Pdf::loadView('prospects.pdf', compact('prospects', 'statuses', 'filterLabel', 'etaDate'))
             ->setPaper('a4', 'landscape');
 
         $filename = 'prospects-' . now()->format('Ymd-His') . '.pdf';

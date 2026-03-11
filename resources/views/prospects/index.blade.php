@@ -4,11 +4,13 @@
 
 @section('styles')
 <style>
-    .badge-planning   { background: rgba(99,130,200,.2);  color: #8aaff5; border: 1px solid rgba(99,130,200,.3); }
-    .badge-confirmed  { background: rgba(39,174,96,.2);   color: #4cd98a; border: 1px solid rgba(39,174,96,.35); }
-    .badge-delayed    { background: rgba(240,180,41,.2);  color: #f5c842; border: 1px solid rgba(240,180,41,.35); }
-    .badge-cancelled  { background: rgba(224,82,82,.2);   color: #f07070; border: 1px solid rgba(224,82,82,.3); }
-    .badge-completed  { background: rgba(0,201,177,.15);  color: #00c9b1; border: 1px solid rgba(0,201,177,.3); }
+    .badge-planning          { background: rgba(99,130,200,.2);  color: #8aaff5; border: 1px solid rgba(99,130,200,.3); }
+    .badge-confirmed          { background: rgba(39,174,96,.2);   color: #4cd98a; border: 1px solid rgba(39,174,96,.35); }
+    .badge-waiting_customers  { background: rgba(180,100,240,.2); color: #d08cf5; border: 1px solid rgba(180,100,240,.3); }
+    .badge-customs            { background: rgba(240,150,40,.2);  color: #f5a842; border: 1px solid rgba(240,150,40,.35); }
+    .badge-delayed            { background: rgba(240,180,41,.2);  color: #f5c842; border: 1px solid rgba(240,180,41,.35); }
+    .badge-cancelled          { background: rgba(224,82,82,.2);   color: #f07070; border: 1px solid rgba(224,82,82,.3); }
+    .badge-completed          { background: rgba(0,201,177,.15);  color: #00c9b1; border: 1px solid rgba(0,201,177,.3); }
 
     .notes-preview {
         max-width: 200px;
@@ -45,8 +47,22 @@
     </h2>
 
     <div class="filter-bar">
-        <form method="GET" action="{{ route('prospects.index') }}" style="display:flex;gap:.6rem;align-items:center;">
-            <select name="status" onchange="this.form.submit()">
+        <form method="GET" action="{{ route('prospects.index') }}" style="display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;" id="filterForm">
+            {{-- Date filter (by ETA) --}}
+            <input type="date" name="eta_date" class="input-date"
+                   value="{{ $etaDate }}"
+                   onchange="document.getElementById('filterForm').submit()"
+                   title="Filter by ETA date">
+
+            @if($etaDate)
+            <a href="{{ route('prospects.index', array_filter(['status' => request('status')])) }}"
+               class="btn btn-outline btn-sm" title="Clear date filter">
+                <i class="fas fa-times"></i>
+            </a>
+            @endif
+
+            {{-- Status filter --}}
+            <select name="status" onchange="document.getElementById('filterForm').submit()">
                 <option value="">All Statuses</option>
                 @foreach($statuses as $key => $label)
                     <option value="{{ $key }}" {{ request('status') === $key ? 'selected' : '' }}>
@@ -56,8 +72,8 @@
             </select>
         </form>
 
-        {{-- Export PDF (preserves active filter) --}}
-        <a href="{{ route('prospects.exportPdf', request()->only('status')) }}"
+        {{-- Export PDF (preserves active filters) --}}
+        <a href="{{ route('prospects.exportPdf', array_filter(['status' => request('status'), 'eta_date' => $etaDate])) }}"
            class="btn btn-purple" target="_blank">
             <i class="fas fa-file-pdf"></i> Export PDF
         </a>

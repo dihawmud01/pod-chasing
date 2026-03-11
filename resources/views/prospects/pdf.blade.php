@@ -130,11 +130,13 @@
             font-size: 7.5px;
             font-weight: bold;
         }
-        .badge-planning  { background: #dce8ff; color: #2a5fc0; }
-        .badge-confirmed { background: #d4f4e4; color: #1a7a45; }
-        .badge-delayed   { background: #fff0cc; color: #a06800; }
-        .badge-cancelled { background: #fde0e0; color: #b53030; }
-        .badge-completed { background: #ccf5ef; color: #007a6a; }
+        .badge-planning          { background: #dce8ff; color: #2a5fc0; }
+        .badge-confirmed         { background: #d4f4e4; color: #1a7a45; }
+        .badge-waiting_customers { background: #ead5ff; color: #7030a0; }
+        .badge-customs           { background: #fde8c8; color: #8a4a00; }
+        .badge-delayed           { background: #fff0cc; color: #a06800; }
+        .badge-cancelled         { background: #fde0e0; color: #b53030; }
+        .badge-completed         { background: #ccf5ef; color: #007a6a; }
 
         /* Notes */
         .notes-cell {
