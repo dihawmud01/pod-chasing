@@ -27,7 +27,7 @@ class Prospect extends Model
         'eta'           => 'datetime',
         'etb'           => 'datetime',
         'etd'           => 'datetime',
-        'delivery_date' => 'date',
+        'delivery_date' => 'datetime',
     ];
 
     public static array $sections = [

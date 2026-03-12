@@ -22,7 +22,6 @@ class ProspectController extends Controller
         $statuses  = Prospect::$statuses;
         $sections  = Prospect::$sections;
 
-        // ── Alert data (across ALL dates, not just current view) ──
         $overdueProspects = Prospect::whereNotNull('delivery_date')
             ->whereDate('delivery_date', '<', now()->toDateString())
             ->whereNotIn('status', ['completed', 'cancelled'])

@@ -102,9 +102,9 @@
 
             <div class="form-row">
                 <div class="form-group">
-                    <label>Delivery Date</label>
-                    <input type="date" name="delivery_date" class="form-control"
-                           value="{{ old('delivery_date', $prospect->delivery_date?->format('Y-m-d')) }}">
+                    <label>Delivery Date <small style="color:var(--text-dim);font-size:.72rem;">(date &amp; time)</small></label>
+                    <input type="datetime-local" name="delivery_date" class="form-control"
+                           value="{{ old('delivery_date', $prospect->delivery_date?->format('Y-m-d\TH:i')) }}">
                     <small style="color:var(--text-dim);font-size:.74rem;margin-top:.25rem;display:block;">
                         Required to enable the "Create Delivery" button.
                     </small>

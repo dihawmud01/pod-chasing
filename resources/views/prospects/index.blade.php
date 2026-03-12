@@ -231,10 +231,15 @@
                         </td>
                         <td>
                             @if($prospect->delivery_date)
-                                <span style="color:{{ $prospect->isDeliveryOverdue() ? 'var(--red)' : 'var(--gold)' }};font-weight:600;font-size:.85rem;">
-                                    <i class="fas fa-{{ $prospect->isDeliveryOverdue() ? 'exclamation-triangle' : 'calendar-check' }}" style="font-size:.75rem;"></i>
-                                    {{ $prospect->delivery_date->format('d M Y') }}
-                                </span>
+                                <div class="datetime-val" style="color:{{ $prospect->isDeliveryOverdue() ? 'var(--red)' : 'var(--gold)' }};font-weight:600;">
+                                    <span class="dv-date" style="font-size:.85rem;">
+                                        <i class="fas fa-{{ $prospect->isDeliveryOverdue() ? 'exclamation-triangle' : 'calendar-check' }}" style="font-size:.75rem;"></i>
+                                        {{ $prospect->delivery_date->format('d M Y') }}
+                                    </span>
+                                    @if($prospect->delivery_date->format('H:i') !== '00:00')
+                                        <span class="dv-time" style="color:inherit;opacity:.8;padding-left:14px;">{{ $prospect->delivery_date->format('H:i') }}</span>
+                                    @endif
+                                </div>
                             @else
                                 <span style="color:var(--text-dim);font-size:.8rem;">Not set</span>
                             @endif

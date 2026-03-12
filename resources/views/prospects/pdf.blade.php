@@ -243,7 +243,14 @@
                     <span class="badge badge-{{ $p->status }}">{{ $p->statusLabel() }}</span>
                 </td>
                 <td class="{{ $p->delivery_date ? 'delivery-date' : '' }}">
-                    {{ $p->delivery_date ? $p->delivery_date->format('d M Y') : '—' }}
+                    @if($p->delivery_date)
+                        {{ $p->delivery_date->format('d M Y') }}
+                        @if($p->delivery_date->format('H:i') !== '00:00')
+                            <br><span style="font-size:7.5px;color:#8a9ec0;">{{ $p->delivery_date->format('H:i') }}</span>
+                        @endif
+                    @else
+                        —
+                    @endif
                 </td>
                 <td class="notes-cell">{{ $p->notes ? \Illuminate\Support\Str::limit($p->notes, 80) : '—' }}</td>
             </tr>
