@@ -189,30 +189,56 @@ class ProspectController extends Controller
     }
 
     /**
-     * Export prospects list as PDF (respects date + status filter).
+     * Export prospects list as PDF (preview in browser).
      */
     public function exportPdf(Request $request)
     {
-        $date  = $request->get('date', now()->toDateString());
-        $query = Prospect::whereDate('prospect_date', $date)->orderBy('id');
+        $date      = $request->get('date', now()->toDateString());
+        $timeframe = $request->get('timeframe', 'daily');
+        $section   = $request->get('section', 'all');
 
+        $query = Prospect::query();
+
+        // ── 1. Apply Timeframe Filter ──
+        $carbonDate = \Carbon\Carbon::parse($date);
+        $dateLabel  = '';
+        if ($timeframe === 'weekly') {
+            $startOfWeek = $carbonDate->copy()->startOfWeek(\Carbon\Carbon::MONDAY);
+            $endOfWeek   = $carbonDate->copy()->endOfWeek(\Carbon\Carbon::SUNDAY);
+            $query->whereBetween('prospect_date', [$startOfWeek->toDateString(), $endOfWeek->toDateString()]);
+            $dateLabel = 'Week: ' . $startOfWeek->format('d M y') . ' - ' . $endOfWeek->format('d M y');
+        } else {
+            $query->whereDate('prospect_date', $date);
+            $dateLabel = 'Date: ' . $carbonDate->format('d M Y');
+        }
+
+        // ── 2. Apply Section Filter ──
+        $sectionLabel = '';
+        if ($section !== 'all' && array_key_exists($section, Prospect::$sections)) {
+            $query->where('section', $section);
+            $sectionLabel = 'Sec: ' . Prospect::$sections[$section];
+        }
+
+        // ── 3. Apply Status Filter ──
+        $statusLabel = '';
         if ($request->filled('status')) {
             $query->where('status', $request->status);
+            $statusLabel = 'Sts: ' . (Prospect::$statuses[$request->status] ?? ucfirst($request->status));
         }
 
-        $prospects = $query->get();
+        // Build data
+        $prospects = $query->orderBy('destination_country', 'asc')->orderBy('id', 'asc')->get();
         $statuses  = Prospect::$statuses;
 
-        $filterParts = [\Carbon\Carbon::parse($date)->format('d M Y')];
-        if ($request->filled('status')) {
-            $filterParts[] = 'Status: ' . ($statuses[$request->status] ?? ucfirst($request->status));
-        }
-        $filterLabel = implode(' | ', $filterParts);
+        // Build elegant filter string
+        $filterParts = array_filter([$dateLabel, $sectionLabel, $statusLabel]);
+        $filterLabel = implode('   |   ', $filterParts);
 
         $pdf = Pdf::loadView('prospects.pdf', compact('prospects', 'statuses', 'filterLabel', 'date'))
             ->setPaper('a4', 'landscape');
 
-        return $pdf->download('prospects-' . $date . '.pdf');
+        // STREAM for preview instead of download
+        return $pdf->stream('Prospects_Report_' . ($timeframe === 'weekly' ? 'Weekly' : 'Daily') . '.pdf');
     }
 
     /**

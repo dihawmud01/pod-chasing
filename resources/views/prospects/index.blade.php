@@ -136,10 +136,9 @@
                 @endforeach
             </select>
         </form>
-        <a href="{{ route('prospects.exportPdf', array_filter(['date' => $date, 'status' => request('status')])) }}"
-           class="btn btn-purple" target="_blank">
+        <button type="button" class="btn btn-purple" onclick="document.getElementById('pdfModal').style.display='flex'">
             <i class="fas fa-file-pdf"></i> Export PDF
-        </a>
+        </button>
         <a href="{{ route('prospects.create', ['date' => $date]) }}" class="btn btn-teal">
             <i class="fas fa-plus"></i> Add Prospect
         </a>
@@ -275,6 +274,45 @@
     </div>
 </div>
 @endforeach
+
+{{-- ── EXPORT PDF MODAL ── --}}
+<div id="pdfModal" class="modal-overlay" style="display:none;align-items:center;justify-content:center;z-index:9999;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);">
+    <div class="modal-box" style="width:400px;background:var(--navy-card);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:var(--shadow);">
+        <div class="modal-header" style="background:rgba(0,201,177,.1);padding:1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.6rem;">
+            <i class="fas fa-print" style="color:var(--teal)"></i>
+            <h3 style="margin:0;font-size:1.1rem;color:var(--text)">Print PDF Report</h3>
+        </div>
+        <form method="GET" action="{{ route('prospects.exportPdf') }}" target="_blank">
+            <div class="modal-body" style="padding:1.5rem;">
+                <input type="hidden" name="date" value="{{ $date }}">
+                <input type="hidden" name="status" value="{{ request('status') }}">
+
+                <div class="form-group" style="margin-bottom:1.25rem;">
+                    <label style="display:block;margin-bottom:.5rem;color:var(--text);font-size:.85rem;font-weight:600;">Timeframe Selection</label>
+                    <select name="timeframe" class="form-control" style="width:100%;border-radius:8px;padding:.6rem 1rem;background:var(--navy-row);color:var(--text);border:1px solid var(--border);">
+                        <option value="daily">Daily Only ({{ $dateFormatted }})</option>
+                        <option value="weekly">Weekly (Monday - Sunday of this week)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label style="display:block;margin-bottom:.5rem;color:var(--text);font-size:.85rem;font-weight:600;">Area / Section Filter</label>
+                    <select name="section" class="form-control" style="width:100%;border-radius:8px;padding:.6rem 1rem;background:var(--navy-row);color:var(--text);border:1px solid var(--border);">
+                        <option value="all">Both Sections (NL-BE & EU+GB)</option>
+                        <option value="nl_be">NL-BE Section Only</option>
+                        <option value="eu_gb">EU+GB Section Only</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer" style="padding:1rem 1.5rem;background:var(--navy-row);border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:.75rem;">
+                <button type="button" class="btn btn-outline" onclick="document.getElementById('pdfModal').style.display='none'">Cancel</button>
+                <button type="submit" class="btn btn-purple" onclick="document.getElementById('pdfModal').style.display='none'">
+                    <i class="fas fa-file-pdf"></i> Preview PDF
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 
 @endsection
 
