@@ -52,7 +52,7 @@
     .btn-purple { background: rgba(167,139,250,.15); border: 1px solid rgba(167,139,250,.35); color: #c4b5fd; }
     .btn-purple:hover { background: rgba(167,139,250,.28); transform: translateY(-1px); }
 
-    .notes-preview { max-width: 160px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-dim); font-size: .8rem; font-style: italic; }
+    .notes-preview { max-width: 180px; white-space: normal; word-wrap: break-word; color: var(--text-dim); font-size: .8rem; font-style: italic; line-height: 1.4; }
     .datetime-val { display: flex; flex-direction: column; gap: 1px; }
     .datetime-val .dv-date { font-size: .82rem; }
     .datetime-val .dv-time { font-size: .72rem; color: var(--text-dim); font-family: monospace; }
