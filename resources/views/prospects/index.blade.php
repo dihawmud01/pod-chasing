@@ -136,7 +136,7 @@
                 @endforeach
             </select>
         </form>
-        <button type="button" class="btn btn-purple" onclick="document.getElementById('pdfModal').style.display='flex'">
+        <button type="button" class="btn btn-purple" id="btnExportPdf" onclick="openPdfModal()">
             <i class="fas fa-file-pdf"></i> Export PDF
         </button>
         <a href="{{ route('prospects.create', ['date' => $date]) }}" class="btn btn-teal">
@@ -305,8 +305,8 @@
                 </div>
             </div>
             <div class="modal-footer" style="padding:1rem 1.5rem;background:var(--navy-row);border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:.75rem;">
-                <button type="button" class="btn btn-outline" onclick="document.getElementById('pdfModal').style.display='none'">Cancel</button>
-                <button type="submit" class="btn btn-purple" onclick="document.getElementById('pdfModal').style.display='none'">
+                <button type="button" class="btn btn-outline" onclick="closePdfModal()">Cancel</button>
+                <button type="submit" class="btn btn-purple" onclick="closePdfModal()">
                     <i class="fas fa-file-pdf"></i> Preview PDF
                 </button>
             </div>
@@ -319,6 +319,25 @@
 @section('scripts')
 <script>
 const CSRF = '{{ $csrfToken }}';
+
+function openPdfModal() {
+    console.log("Opening PDF Modal");
+    const modal = document.getElementById('pdfModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        modal.style.opacity = '1';
+    } else {
+        alert("Error: Modal element not found in the DOM!");
+    }
+}
+
+function closePdfModal() {
+    const modal = document.getElementById('pdfModal');
+    if (modal) {
+        modal.style.opacity = '0';
+        setTimeout(() => modal.style.display = 'none', 150);
+    }
+}
 
 function quickStatus(el) {
     const id = el.dataset.id, status = el.value, prev = el.dataset.status;
