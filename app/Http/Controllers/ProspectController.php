@@ -54,7 +54,7 @@ class ProspectController extends Controller
             'prospect_date' => 'required|date',
         ]);
 
-        Prospect::create([
+        $prospect = Prospect::create([
             'prospect_date'       => $request->prospect_date,
             'section'             => $request->section ?? 'nl_be',
             'vessel_name'         => $request->vessel_name,
@@ -69,6 +69,8 @@ class ProspectController extends Controller
             'customs_note'        => $request->status === 'customs' ? $request->customs_note : null,
             'notes'               => $request->notes,
         ]);
+
+        $this->syncDelivery($prospect);
 
         return redirect()->route('prospects.index', ['date' => $request->prospect_date])
             ->with('success', 'Prospect added successfully!');
@@ -105,6 +107,8 @@ class ProspectController extends Controller
             'notes'               => $request->notes,
         ]);
 
+        $this->syncDelivery($prospect);
+
         return redirect()->route('prospects.index', ['date' => $request->prospect_date])
             ->with('success', 'Prospect updated successfully!');
     }
@@ -112,6 +116,11 @@ class ProspectController extends Controller
     public function destroy(Prospect $prospect)
     {
         $date = $prospect->prospect_date->toDateString();
+        
+        if ($prospect->vessel_id) {
+            Vessel::where('id', $prospect->vessel_id)->delete();
+        }
+        
         $prospect->delete();
         return redirect()->route('prospects.index', ['date' => $date])
             ->with('success', 'Prospect deleted successfully!');
@@ -131,6 +140,8 @@ class ProspectController extends Controller
         }
 
         $prospect->update($data);
+        
+        $this->syncDelivery($prospect);
 
         return response()->json([
             'success'  => true,
@@ -139,27 +150,38 @@ class ProspectController extends Controller
     }
 
     /**
-     * Create a Delivery (Vessel) record from this Prospect.
+     * Helper to create, update, or delete the synced Vessel (Delivery).
      */
-    public function createDelivery(Prospect $prospect)
+    private function syncDelivery(Prospect $prospect)
     {
-        Vessel::create([
-            'vessel_name'      => $prospect->vessel_name,
-            'delivery_address' => $prospect->destination_country,
-            'driver'           => $prospect->forwarder,
-            'information'      => null,
-            'customs_doc'      => false,
-            'print_status'     => false,
-            'delivered'        => false,
-            'pod_status'       => false,
-            'report_date'      => $prospect->delivery_date ?? now()->toDateString(),
-        ]);
+        if ($prospect->delivery_date && !in_array($prospect->status, ['cancelled'])) {
+            $vesselData = [
+                'vessel_name'      => $prospect->vessel_name,
+                'delivery_address' => $prospect->destination_country,
+                'driver'           => $prospect->forwarder,
+                'report_date'      => $prospect->delivery_date->toDateString(),
+            ];
 
-        $prospect->update(['status' => 'completed']);
-
-        return redirect()->route('vessels.index', [
-            'date' => ($prospect->delivery_date ?? now())->toDateString(),
-        ])->with('success', 'Delivery created from prospect: ' . $prospect->vessel_name);
+            if ($prospect->vessel_id) {
+                Vessel::where('id', $prospect->vessel_id)->update($vesselData);
+            } else {
+                $vessel = Vessel::create(array_merge($vesselData, [
+                    'information'  => null,
+                    'customs_doc'  => false,
+                    'print_status' => false,
+                    'pod_status'   => false,
+                    'delivered'    => false,
+                ]));
+                // Use update quietly to avoid firing events if any
+                Prospect::where('id', $prospect->id)->update(['vessel_id' => $vessel->id]);
+            }
+        } else {
+            // Delete Vessel if delivery_date is removed or prospect is cancelled
+            if ($prospect->vessel_id) {
+                Vessel::where('id', $prospect->vessel_id)->delete();
+                Prospect::where('id', $prospect->id)->update(['vessel_id' => null]);
+            }
+        }
     }
 
     /**

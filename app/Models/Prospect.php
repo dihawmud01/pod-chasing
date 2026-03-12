@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Prospect extends Model
 {
     protected $fillable = [
+        'vessel_id',
         'prospect_date',
         'section',
         'vessel_name',
@@ -59,5 +60,10 @@ class Prospect extends Model
         if (! $this->delivery_date) return false;
         if (in_array($this->status, ['completed', 'cancelled'])) return false;
         return $this->delivery_date->isPast();
+    }
+
+    public function vessel()
+    {
+        return $this->belongsTo(Vessel::class);
     }
 }

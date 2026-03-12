@@ -105,7 +105,7 @@
                     <input type="datetime-local" name="delivery_date" class="form-control"
                            value="{{ old('delivery_date') }}">
                     <small style="color:var(--text-dim);font-size:.74rem;margin-top:.25rem;display:block;">
-                        Required to enable the "Create Delivery" button.
+                        Filling this will automatically create a Delivery record.
                     </small>
                 </div>
                 <div class="form-group">

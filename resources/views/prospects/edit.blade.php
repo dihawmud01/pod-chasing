@@ -106,7 +106,7 @@
                     <input type="datetime-local" name="delivery_date" class="form-control"
                            value="{{ old('delivery_date', $prospect->delivery_date?->format('Y-m-d\TH:i')) }}">
                     <small style="color:var(--text-dim);font-size:.74rem;margin-top:.25rem;display:block;">
-                        Required to enable the "Create Delivery" button.
+                        Filling this will automatically create/update a Delivery record.
                     </small>
                 </div>
                 <div class="form-group">
@@ -145,18 +145,6 @@
             <div class="modal-footer">
                 <a href="{{ route('prospects.index', ['date' => $prospect->prospect_date->toDateString()]) }}"
                    class="btn btn-outline">Cancel</a>
-
-                @if($prospect->delivery_date && $prospect->status !== 'cancelled' && $prospect->status !== 'completed')
-                <div style="margin-right:auto;">
-                    <form method="POST" action="{{ route('prospects.createDelivery', $prospect) }}"
-                          onsubmit="return confirm('Create delivery from this prospect?')">
-                        @csrf
-                        <button type="submit" class="btn btn-gold">
-                            <i class="fas fa-truck"></i> Create Delivery
-                        </button>
-                    </form>
-                </div>
-                @endif
 
                 <button type="submit" class="btn btn-teal">
                     <i class="fas fa-save"></i> Update Prospect
