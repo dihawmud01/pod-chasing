@@ -275,15 +275,72 @@
 </div>
 @endforeach
 
+<style>
+/* ── PDF MODAL STYLES ── */
+.pdf-modal-overlay {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 9999;
+    opacity: 0; /* Default invisible, toggled by JS */
+    transition: opacity 0.2s ease-in-out;
+    pointer-events: auto; /* Ensure overlay catches clicks */
+}
+
+.pdf-modal-box {
+    width: 400px;
+    background: var(--navy-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    position: relative;
+    z-index: 10000;
+    pointer-events: auto; /* Ensure contents catch clicks */
+}
+
+.pdf-modal-header {
+    background: rgba(0,201,177,.1);
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+}
+
+.pdf-modal-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: var(--text);
+}
+
+.pdf-modal-body {
+    padding: 1.5rem;
+}
+
+.pdf-modal-footer {
+    padding: 1rem 1.5rem;
+    background: var(--navy-row);
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+    gap: .75rem;
+}
+</style>
+
 {{-- ── EXPORT PDF MODAL ── --}}
-<div id="pdfModal" class="modal-overlay" style="display:none;align-items:center;justify-content:center;z-index:9999;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);">
-    <div class="modal-box" style="width:400px;background:var(--navy-card);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:var(--shadow);">
-        <div class="modal-header" style="background:rgba(0,201,177,.1);padding:1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.6rem;">
+<div id="pdfModal" class="pdf-modal-overlay" onclick="if(event.target === this) closePdfModal()">
+    <div class="pdf-modal-box">
+        <div class="pdf-modal-header">
             <i class="fas fa-print" style="color:var(--teal)"></i>
-            <h3 style="margin:0;font-size:1.1rem;color:var(--text)">Print PDF Report</h3>
+            <h3>Print PDF Report</h3>
         </div>
         <form method="GET" action="{{ route('prospects.exportPdf') }}" target="_blank">
-            <div class="modal-body" style="padding:1.5rem;">
+            <div class="pdf-modal-body">
                 <input type="hidden" name="date" value="{{ $date }}">
                 <input type="hidden" name="status" value="{{ request('status') }}">
 
@@ -304,7 +361,7 @@
                     </select>
                 </div>
             </div>
-            <div class="modal-footer" style="padding:1rem 1.5rem;background:var(--navy-row);border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:.75rem;">
+            <div class="pdf-modal-footer">
                 <button type="button" class="btn btn-outline" onclick="closePdfModal()">Cancel</button>
                 <button type="submit" class="btn btn-purple" onclick="closePdfModal()">
                     <i class="fas fa-file-pdf"></i> Preview PDF
@@ -325,7 +382,8 @@ function openPdfModal() {
     const modal = document.getElementById('pdfModal');
     if (modal) {
         modal.style.display = 'flex';
-        modal.style.opacity = '1';
+        // Small timeout to allow display:flex to apply before transitioning opacity
+        setTimeout(() => modal.style.opacity = '1', 10);
     } else {
         alert("Error: Modal element not found in the DOM!");
     }
@@ -335,7 +393,7 @@ function closePdfModal() {
     const modal = document.getElementById('pdfModal');
     if (modal) {
         modal.style.opacity = '0';
-        setTimeout(() => modal.style.display = 'none', 150);
+        setTimeout(() => modal.style.display = 'none', 200);
     }
 }
 
