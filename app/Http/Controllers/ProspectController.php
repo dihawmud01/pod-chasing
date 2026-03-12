@@ -12,7 +12,9 @@ class ProspectController extends Controller
     public function index(Request $request)
     {
         $date  = $request->get('date', now()->toDateString());
-        $query = Prospect::whereDate('prospect_date', $date)->orderBy('id');
+        $query = Prospect::whereDate('prospect_date', $date)
+                         ->orderBy('destination_country', 'asc')
+                         ->orderBy('id', 'asc');
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
@@ -42,8 +44,9 @@ class ProspectController extends Controller
     {
         $statuses     = Prospect::$statuses;
         $sections     = Prospect::$sections;
+        $countries    = Prospect::getCountries();
         $prospectDate = $request->get('date', now()->toDateString());
-        return view('prospects.create', compact('statuses', 'sections', 'prospectDate'));
+        return view('prospects.create', compact('statuses', 'sections', 'countries', 'prospectDate'));
     }
 
     public function store(Request $request)
@@ -78,9 +81,10 @@ class ProspectController extends Controller
 
     public function edit(Prospect $prospect)
     {
-        $statuses = Prospect::$statuses;
-        $sections = Prospect::$sections;
-        return view('prospects.edit', compact('prospect', 'statuses', 'sections'));
+        $statuses  = Prospect::$statuses;
+        $sections  = Prospect::$sections;
+        $countries = Prospect::getCountries();
+        return view('prospects.edit', compact('prospect', 'statuses', 'sections', 'countries'));
     }
 
     public function update(Request $request, Prospect $prospect)

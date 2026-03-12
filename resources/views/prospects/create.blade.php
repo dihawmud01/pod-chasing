@@ -89,8 +89,13 @@
             <div class="form-row">
                 <div class="form-group">
                     <label>Destination Country</label>
-                    <input type="text" name="destination_country" class="form-control"
-                           value="{{ old('destination_country') }}" placeholder="e.g. Indonesia">
+                    <input list="country_list" name="destination_country" class="form-control"
+                           value="{{ old('destination_country') }}" placeholder="e.g. Netherlands" autocomplete="off">
+                    <datalist id="country_list">
+                        @foreach($countries as $c)
+                            <option value="{{ $c }}">
+                        @endforeach
+                    </datalist>
                 </div>
                 <div class="form-group">
                     <label>Transport Company</label>
