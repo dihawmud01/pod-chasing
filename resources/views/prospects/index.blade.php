@@ -249,15 +249,6 @@
                                 <a href="{{ route('prospects.edit', $prospect) }}" class="btn btn-outline btn-sm">
                                     <i class="fas fa-edit"></i> Edit
                                 </a>
-                                @if($prospect->delivery_date && $prospect->status !== 'cancelled' && $prospect->status !== 'completed')
-                                <form method="POST" action="{{ route('prospects.createDelivery', $prospect) }}"
-                                      onsubmit="return confirm('Create delivery from {{ addslashes($prospect->vessel_name) }}?')">
-                                    @csrf
-                                    <button type="submit" class="btn btn-gold btn-sm">
-                                        <i class="fas fa-truck"></i> Deliver
-                                    </button>
-                                </form>
-                                @endif
                                 <form method="POST" action="{{ route('prospects.destroy', $prospect) }}"
                                       onsubmit="return confirm('Delete this prospect?')">
                                     @csrf @method('DELETE')
