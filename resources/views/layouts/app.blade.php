@@ -649,15 +649,20 @@
                     }
 
                     list.innerHTML = data.items.map(item => `
-                        <a href="${item.url}" class="notif-item">
-                            <div class="notif-icon ${item.type}">
-                                <i class="fas fa-${item.icon}"></i>
-                            </div>
-                            <div class="notif-text">
-                                <div class="notif-title ${item.type}">${item.title}</div>
-                                <div class="notif-msg" title="${item.message}">${item.message}</div>
-                            </div>
-                        </a>
+                        <div class="notif-item-wrap" style="position:relative; display:flex; align-items:center;">
+                            <a href="${item.url}" class="notif-item" style="flex:1; padding-right:2.5rem;" onclick="dismissAndGo(event, ${item.id}, '${item.url}')">
+                                <div class="notif-icon ${item.type}">
+                                    <i class="fas fa-${item.icon}"></i>
+                                </div>
+                                <div class="notif-text">
+                                    <div class="notif-title ${item.type}">${item.title}</div>
+                                    <div class="notif-msg" title="${item.message}">${item.message}</div>
+                                </div>
+                            </a>
+                            <button onclick="dismissOnly(event, ${item.id}, this)" title="Mark as Read" style="position:absolute; right:.75rem; background:none; border:none; color:var(--text-dim); cursor:pointer; font-size:.85rem; padding:.25rem;">
+                                <i class="fas fa-check"></i>
+                            </button>
+                        </div>
                     `).join('');
                 })
                 .catch(() => {
@@ -684,6 +689,51 @@
                 document.getElementById('notifDropdown').classList.remove('open');
             }
         });
+
+        // ── Dismiss Alerts Logic ──
+        function dismissAndGo(event, id, url) {
+            event.preventDefault();
+            fetch('/prospects/' + id + '/dismiss-alert', {
+                method: 'PATCH',
+                headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }
+            }).finally(() => {
+                window.location.href = url;
+            });
+        }
+
+        function dismissOnly(event, id, btn) {
+            event.stopPropagation();
+            event.preventDefault();
+            
+            const wrap = btn.closest('.notif-item-wrap');
+            if (wrap) wrap.style.opacity = '0.5';
+
+            fetch('/prospects/' + id + '/dismiss-alert', {
+                method: 'PATCH',
+                headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }
+            }).then(r => r.json()).then(res => {
+                if (res.success) {
+                    if (wrap) {
+                        wrap.style.height = wrap.offsetHeight + 'px';
+                        setTimeout(() => { wrap.style.display = 'none'; }, 200);
+                    }
+                    
+                    // Decrement badge locally
+                    const badge = document.getElementById('notifBadge');
+                    const count = document.getElementById('notifCount');
+                    let current = parseInt(badge.textContent) || 0;
+                    if (current > 0) {
+                        current--;
+                        badge.textContent = current > 9 ? '9+' : current;
+                        count.textContent = current + ' alert' + (current !== 1 ? 's' : '');
+                        if (current === 0) {
+                            badge.style.display = 'none';
+                            document.getElementById('notifList').innerHTML = '<div class="notif-empty"><i class="fas fa-check-circle"></i>All clear! No issues found.</div>';
+                        }
+                    }
+                }
+            });
+        }
     </script>
     @yield('scripts')
 </body>

@@ -4,7 +4,6 @@ use App\Http\Controllers\VesselController;
 use App\Http\Controllers\ProspectController;
 use Illuminate\Support\Facades\Route;
 
-// ── Delivery Monitoring (POD Chasing) ──────────────────────────────────────
 Route::get('/', [VesselController::class, 'index'])->name('vessels.index');
 Route::post('/vessels', [VesselController::class, 'store'])->name('vessels.store');
 Route::put('/vessels/{vessel}', [VesselController::class, 'update'])->name('vessels.update');
@@ -13,10 +12,11 @@ Route::patch('/vessels/{vessel}/quick', [VesselController::class, 'quickUpdate']
 Route::post('/vessels/{vessel}/pod', [VesselController::class, 'uploadPod'])->name('vessels.pod');
 Route::get('/print', [VesselController::class, 'print'])->name('vessels.print');
 
-// ── Prospects ──────────────────────────────────────────────────────────────
 Route::resource('prospects', ProspectController::class);
 Route::patch('/prospects/{prospect}/quick-status', [ProspectController::class, 'quickStatus'])
     ->name('prospects.quickStatus');
+Route::patch('/prospects/{prospect}/dismiss-alert', [ProspectController::class, 'dismissAlert'])
+    ->name('prospects.dismissAlert');
 Route::get('/prospects-export-pdf', [ProspectController::class, 'exportPdf'])
     ->name('prospects.exportPdf');
 Route::get('/notifications', [ProspectController::class, 'notifications'])

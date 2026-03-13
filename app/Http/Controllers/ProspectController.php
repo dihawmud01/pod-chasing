@@ -71,6 +71,7 @@ class ProspectController extends Controller
             'status'              => $request->status,
             'customs_note'        => $request->status === 'customs' ? $request->customs_note : null,
             'notes'               => $request->notes,
+            'alert_dismissed'     => false,
         ]);
 
         $this->syncDelivery($prospect);
@@ -109,6 +110,7 @@ class ProspectController extends Controller
             'status'              => $request->status,
             'customs_note'        => $request->status === 'customs' ? $request->customs_note : null,
             'notes'               => $request->notes,
+            'alert_dismissed'     => false,
         ]);
 
         $this->syncDelivery($prospect);
@@ -143,6 +145,11 @@ class ProspectController extends Controller
             $data['customs_note'] = null;
         }
 
+        // Reset alert dismissed if we change status
+        if (isset($data['status'])) {
+            $data['alert_dismissed'] = false;
+        }
+
         $prospect->update($data);
         
         $this->syncDelivery($prospect);
@@ -151,6 +158,16 @@ class ProspectController extends Controller
             'success'  => true,
             'prospect' => $prospect->fresh(),
         ]);
+    }
+
+    /**
+     * Dismiss a notification alert via AJAX.
+     */
+    public function dismissAlert(Prospect $prospect)
+    {
+        $prospect->update(['alert_dismissed' => true]);
+
+        return response()->json(['success' => true]);
     }
 
     /**
@@ -252,10 +269,12 @@ class ProspectController extends Controller
         Prospect::whereNotNull('delivery_date')
             ->whereDate('delivery_date', '<', now()->toDateString())
             ->whereNotIn('status', ['completed', 'cancelled'])
+            ->where('alert_dismissed', false)
             ->orderBy('delivery_date')
             ->get()
             ->each(function ($p) use ($items) {
                 $items->push([
+                    'id'      => $p->id,
                     'type'    => 'danger',
                     'icon'    => 'exclamation-circle',
                     'title'   => 'Delivery Overdue',
@@ -269,10 +288,12 @@ class ProspectController extends Controller
         // Arranged but no delivery date
         Prospect::where('status', 'arranged')
             ->whereNull('delivery_date')
+            ->where('alert_dismissed', false)
             ->orderBy('prospect_date')
             ->get()
             ->each(function ($p) use ($items) {
                 $items->push([
+                    'id'      => $p->id,
                     'type'    => 'warning',
                     'icon'    => 'calendar-times',
                     'title'   => 'No Delivery Date',

@@ -90,33 +90,7 @@
     $totalCount = collect($sections)->keys()->sum(fn($k) => ($prospects->get($k) ?? collect())->count());
 @endphp
 
-{{-- ── ALERT PANEL ── --}}
-@if($overdueProspects->isNotEmpty() || $arrangedNoDates->isNotEmpty())
-<div class="alert-panel">
-    @foreach($overdueProspects as $op)
-    <div class="alert-item alert-danger">
-        <i class="fas fa-exclamation-circle"></i>
-        <div>
-            <strong>Delivery Overdue</strong> —
-            <a href="{{ route('prospects.edit', $op) }}">{{ $op->vessel_name }}</a>
-            &nbsp;<span class="badge badge-{{ $op->status }}">{{ $op->statusLabel() }}</span>
-            &nbsp;· Delivery was <strong>{{ $op->delivery_date->format('d M Y') }}</strong>
-            ({{ $op->delivery_date->diffForHumans() }})
-        </div>
-    </div>
-    @endforeach
-    @foreach($arrangedNoDates as $cp)
-    <div class="alert-item alert-warning">
-        <i class="fas fa-calendar-times"></i>
-        <div>
-            <strong>Arranged — No Delivery Date</strong> —
-            <a href="{{ route('prospects.edit', $cp) }}">{{ $cp->vessel_name }}</a>
-            &nbsp;· Prospect date: {{ $cp->prospect_date->format('d M Y') }}
-        </div>
-    </div>
-    @endforeach
-</div>
-@endif
+
 
 {{-- ── TOOLBAR ── --}}
 <div class="toolbar">

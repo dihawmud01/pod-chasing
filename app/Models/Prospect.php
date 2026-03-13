@@ -21,14 +21,16 @@ class Prospect extends Model
         'status',
         'customs_note',
         'notes',
+        'alert_dismissed',
     ];
 
     protected $casts = [
         'prospect_date' => 'date',
         'eta'           => 'datetime',
         'etb'           => 'datetime',
-        'etd'           => 'datetime',
-        'delivery_date' => 'datetime',
+        'etd'             => 'datetime',
+        'delivery_date'   => 'datetime',
+        'alert_dismissed' => 'boolean',
     ];
 
     public static array $sections = [
