@@ -51,9 +51,25 @@
     <a href="{{ route('vessels.print', ['date' => $date]) }}" target="_blank" class="btn btn-outline">
         <i class="fas fa-print"></i> Print
     </a>
+    
     <button class="btn btn-teal" onclick="openModal()">
         <i class="fas fa-plus"></i> Add Vessel
     </button>
+    
+    @if($vessels->isNotEmpty())
+    <div style="width:1px;height:24px;background:var(--border);margin:0 .5rem;"></div>
+    <button class="btn btn-purple" onclick="openMoveModal()">
+        <i class="fas fa-calendar-alt"></i> Move Day
+    </button>
+    <form method="POST" action="{{ route('vessels.clearDay') }}" onsubmit="return confirm('WARNING: Are you sure you want to permanently DELETE ALL VESSELS for {{ $dateFormatted }}? This action CANNOT be undone!')" style="display:inline-block; margin:0;">
+        @csrf
+        @method('DELETE')
+        <input type="hidden" name="date" value="{{ $date }}">
+        <button type="submit" class="btn btn-danger">
+            <i class="fas fa-trash-alt"></i> Clear Day
+        </button>
+    </form>
+    @endif
 </div>
 
 {{-- ── STATS ── --}}
@@ -331,12 +347,44 @@
 @endsection
 
 @section('scripts')
+{{-- ── MOVE DATE MODAL ── --}}
+<div id="moveModal" class="modal-overlay" onclick="if(event.target === this) closeMoveModal()">
+    <div class="modal-box">
+        <div class="modal-header" style="background:rgba(186,131,250,.1)">
+            <i class="fas fa-calendar-alt" style="color:var(--purple)"></i>
+            <h3>Move All Records to Another Date</h3>
+        </div>
+        <form method="POST" action="{{ route('vessels.moveDay') }}">
+            @csrf
+            <div class="modal-body">
+                <p style="color:var(--text-dim);font-size:.85rem;margin-bottom:1rem;">
+                    This will move all exactly <strong>{{ $vessels->count() }}</strong> delivery records from <strong>{{ \Carbon\Carbon::parse($date)->format('d F Y') }}</strong> to the date chosen below.
+                </p>
+                <input type="hidden" name="from_date" value="{{ $date }}">
+                <div class="form-group">
+                    <label>Target Date</label>
+                    <input type="date" name="to_date" class="form-control" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeMoveModal()">Cancel</button>
+                <button type="submit" class="btn btn-purple">
+                    <i class="fas fa-exchange-alt"></i> Move Data
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
 const CSRF      = document.querySelector('meta[name="csrf-token"]').content;
 const PRESETS   = @json(\App\Models\Vessel::$statusTemplates);
 const VESSELS   = @json($vessels->keyBy('id'));
 
 // ── MODAL OPEN/CLOSE ──
+function openMoveModal()  { document.getElementById('moveModal').classList.add('open'); }
+function closeMoveModal() { document.getElementById('moveModal').classList.remove('open'); }
+
 function openModal() {
     document.getElementById('addStatusSelect').value = '';
     document.getElementById('addStatusCustom').classList.add('hidden');

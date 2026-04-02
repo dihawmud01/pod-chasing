@@ -12,6 +12,9 @@ Route::patch('/vessels/{vessel}/quick', [VesselController::class, 'quickUpdate']
 Route::post('/vessels/{vessel}/pod', [VesselController::class, 'uploadPod'])->name('vessels.pod');
 Route::get('/print', [VesselController::class, 'print'])->name('vessels.print');
 
+Route::delete('/vessels/clear-day', [VesselController::class, 'clearDay'])->name('vessels.clearDay');
+Route::post('/vessels/move-day', [VesselController::class, 'moveDay'])->name('vessels.moveDay');
+
 Route::resource('prospects', ProspectController::class);
 Route::patch('/prospects/{prospect}/quick-status', [ProspectController::class, 'quickStatus'])
     ->name('prospects.quickStatus');

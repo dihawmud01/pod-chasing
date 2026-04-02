@@ -79,6 +79,37 @@ class VesselController extends Controller
             ->with('success', 'Vessel deleted successfully!');
     }
 
+    public function clearDay(Request $request)
+    {
+        $request->validate(['date' => 'required|date']);
+        
+        $vessels = Vessel::where('report_date', $request->date)->get();
+        foreach ($vessels as $vessel) {
+            if ($vessel->pod_file) {
+                Storage::disk('public')->delete('pod_files/' . $vessel->pod_file);
+            }
+        }
+        Vessel::where('report_date', $request->date)->delete();
+
+        return redirect()->route('vessels.index', ['date' => $request->date])
+            ->with('success', 'All vessels for the selected day have been deleted!');
+    }
+
+    public function moveDay(Request $request)
+    {
+        $request->validate([
+            'from_date' => 'required|date',
+            'to_date'   => 'required|date|different:from_date',
+        ]);
+
+        Vessel::where('report_date', $request->from_date)->update([
+            'report_date' => $request->to_date
+        ]);
+
+        return redirect()->route('vessels.index', ['date' => $request->to_date])
+            ->with('success', 'All vessels successfully moved to the new date!');
+    }
+
     public function quickUpdate(Request $request, Vessel $vessel)
     {
         $allowed = ['delivered', 'pod_status', 'customs_doc', 'print_status', 'driver', 'information', 'vessel_name', 'delivery_address'];
