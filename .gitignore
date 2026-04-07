@@ -23,6 +23,10 @@
 .DS_Store
 Thumbs.db
 
+# Database backups
+railway_backup.sql
+*.sql
+
 # IDE
 .idea
 .vscode
